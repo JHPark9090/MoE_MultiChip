@@ -28,7 +28,7 @@ def load_eeg_ts_revised(seed, device, batch_size, sampling_freq, sample_size,
                - train_loader: DataLoader for the training set.
                - val_loader: DataLoader for the validation set.
                - test_loader: DataLoader for the test set.
-               - input_dim: The shape of a single input sample (n_channels, n_timesteps).
+               - input_dim: The shape of the input data (n_trials, n_channels, n_timesteps).
     """
 
     # --- Step 1: Split Subject IDs into Train, Validation, and Test Sets ---
@@ -139,6 +139,6 @@ def load_eeg_ts_revised(seed, device, batch_size, sampling_freq, sample_size,
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
                              num_workers=num_workers)
 
-    input_dim = X_train.shape[1:]
+    input_dim = X_train.shape
 
     return train_loader, val_loader, test_loader, input_dim

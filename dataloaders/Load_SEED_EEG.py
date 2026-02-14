@@ -69,7 +69,7 @@ def load_seed_eeg(
             - train_loader: DataLoader for the training set.
             - val_loader: DataLoader for the validation set.
             - test_loader: DataLoader for the test set.
-            - input_dim: Shape of a single input sample (channels, time[, bands]).
+            - input_dim: Shape of the input data (n_trials, channels, time[, bands]).
     """
 
     # --- Step 1: Split Subject IDs ---
@@ -156,7 +156,7 @@ def load_seed_eeg(
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
                              num_workers=num_workers)
 
-    input_dim = X_train.shape[1:]  # (channels, time) or (channels, time, bands)
+    input_dim = X_train.shape  # (n_trials, channels, time) or (n_trials, channels, time, bands)
 
     return train_loader, val_loader, test_loader, input_dim
 

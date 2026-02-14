@@ -79,7 +79,7 @@ def load_ukb_fmri(
             - train_loader: DataLoader for the training set.
             - val_loader: DataLoader for the validation set.
             - test_loader: DataLoader for the test set.
-            - input_dim: Shape of a single input sample.
+            - input_dim: Shape of the input data (n_samples, time, n_features).
     """
     if phenotypes_to_include is None:
         phenotypes_to_include = []
@@ -278,7 +278,7 @@ def load_ukb_fmri(
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
                              num_workers=num_workers)
 
-    input_dim = X_train.shape[1:]
+    input_dim = X_train.shape
 
     return train_loader, val_loader, test_loader, input_dim
 

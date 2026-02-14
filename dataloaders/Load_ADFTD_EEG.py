@@ -73,7 +73,7 @@ def load_adftd_eeg(
             - train_loader: DataLoader for the training set.
             - val_loader: DataLoader for the validation set.
             - test_loader: DataLoader for the test set.
-            - input_dim: Shape of a single input sample (channels, time).
+            - input_dim: Shape of the input data (n_trials, channels, time).
     """
 
     # --- Step 1: Load participant metadata ---
@@ -208,7 +208,7 @@ def load_adftd_eeg(
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
                              num_workers=num_workers)
 
-    input_dim = X_train.shape[1:]  # (channels, time)
+    input_dim = X_train.shape  # (n_trials, channels, time)
 
     return train_loader, val_loader, test_loader, input_dim
 

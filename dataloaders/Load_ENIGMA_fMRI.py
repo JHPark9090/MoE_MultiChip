@@ -65,8 +65,8 @@ def load_enigma_fmri(
             - train_loader: DataLoader for the training set.
             - val_loader: DataLoader for the validation set.
             - test_loader: DataLoader for the test set.
-            - input_dim: Shape of a single input sample.
-              "fc" -> (50403,), "timeseries" -> (115, 318), "fc_matrix" -> (318, 318)
+            - input_dim: Shape of the input data (n_samples, ...).
+              "fc" -> (N, 50403), "timeseries" -> (N, 115, 318), "fc_matrix" -> (N, 318, 318)
     """
 
     # --- Step 1: Load metadata ---
@@ -188,7 +188,7 @@ def load_enigma_fmri(
     val_loader = _make_loader(X_val, y_val, cov_val, shuffle=False)
     test_loader = _make_loader(X_test, y_test, cov_test, shuffle=False)
 
-    input_dim = X_train.shape[1:]
+    input_dim = X_train.shape
 
     return train_loader, val_loader, test_loader, input_dim
 
