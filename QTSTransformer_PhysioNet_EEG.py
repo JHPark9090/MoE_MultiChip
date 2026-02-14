@@ -10,6 +10,9 @@ from pathlib import Path
 from typing import Tuple
 import time
 
+# scipy.constants must be imported before PennyLane on systems with scipy < 1.13
+import scipy.constants  # noqa: F401
+
 # Import custom modules
 from models.QTSTransformer_v2_5 import QuantumTSTransformer
 from dataloaders.Load_PhysioNet_EEG import load_eeg_ts_revised
@@ -78,7 +81,7 @@ def train(model, train_loader, optimizer, criterion, device):
     all_labels = []
 
     for batch_idx, (data, target) in enumerate(tqdm(train_loader, desc="Training", leave=False)):
-        data, target = data.to(device), target.to(device)
+        data, target = data.to(device), target.float().to(device)
 
         optimizer.zero_grad()
         output = model(data)
@@ -118,7 +121,7 @@ def validate(model, val_loader, criterion, device):
 
     with torch.no_grad():
         for data, target in tqdm(val_loader, desc="Validating", leave=False):
-            data, target = data.to(device), target.to(device)
+            data, target = data.to(device), target.float().to(device)
 
             output = model(data)
             loss = criterion(output, target)
@@ -155,7 +158,7 @@ def test(model, test_loader, criterion, device):
 
     with torch.no_grad():
         for data, target in tqdm(test_loader, desc="Testing", leave=False):
-            data, target = data.to(device), target.to(device)
+            data, target = data.to(device), target.float().to(device)
 
             output = model(data)
             loss = criterion(output, target)
