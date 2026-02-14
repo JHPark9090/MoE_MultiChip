@@ -381,6 +381,8 @@ def train(model, train_loader, optimizer, criterion, device,
         # Task loss
         if num_classes > 2:
             target = target.long()
+        else:
+            target = target.float()
         task_loss = criterion(logits, target)
 
         # Load-balancing loss
@@ -453,6 +455,8 @@ def validate(model, val_loader, criterion, device, num_classes):
 
             if num_classes > 2:
                 target = target.long()
+            else:
+                target = target.float()
             loss = criterion(logits, target)
             epoch_loss += loss.item()
 
@@ -499,6 +503,8 @@ def test(model, test_loader, criterion, device, num_classes):
 
             if num_classes > 2:
                 target = target.long()
+            else:
+                target = target.float()
             loss = criterion(logits, target)
             epoch_loss += loss.item()
 
