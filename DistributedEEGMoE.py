@@ -25,8 +25,10 @@ from torch.optim import Adam
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score, roc_auc_score
 
-# Data loader
+# Data loaders
 from dataloaders.Load_PhysioNet_EEG import load_eeg_ts_revised
+from dataloaders.Load_ABCD_fMRI import load_abcd_fmri
+from torch.utils.data import DataLoader, TensorDataset
 
 # Logger from parent directory
 sys.path.insert(0, "/pscratch/sd/j/junghoon")
@@ -54,6 +56,34 @@ def epoch_time(start_time: float, end_time: float) -> Tuple[int, int]:
     elapsed_mins = int(elapsed_time / 60)
     elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
     return elapsed_mins, elapsed_secs
+
+
+def transpose_fmri_loaders(train_loader, val_loader, test_loader, input_dim,
+                            batch_size, device):
+    """Transpose fMRI data from (N, T, R) to (N, R, T) to match (B, C, T) convention.
+
+    The ABCD dataloader returns (N, T=363, R=180) but models expect (B, C, T).
+    This extracts tensors, permutes dims 1 and 2, and recreates DataLoaders.
+    """
+    new_loaders = []
+    for loader in [train_loader, val_loader, test_loader]:
+        all_x = []
+        all_y = []
+        for x, y in loader:
+            all_x.append(x)
+            all_y.append(y)
+        X = torch.cat(all_x, dim=0)  # (N, T, R)
+        Y = torch.cat(all_y, dim=0)  # (N,)
+        X = X.permute(0, 2, 1)  # (N, R, T)
+        ds = TensorDataset(X, Y)
+        shuffle = (loader is train_loader)
+        new_loaders.append(DataLoader(ds, batch_size=batch_size, shuffle=shuffle))
+
+    # Transpose input_dim: (N, T, R) -> (N, R, T)
+    n_samples, n_time, n_rois = input_dim
+    transposed_dim = (n_samples, n_rois, n_time)
+
+    return new_loaders[0], new_loaders[1], new_loaders[2], transposed_dim
 
 
 def load_balancing_loss(gate_weights: torch.Tensor, num_experts: int) -> torch.Tensor:
@@ -340,10 +370,17 @@ def get_args():
                         choices=["none", "cosine", "step"])
 
     # Data
+    parser.add_argument("--dataset", type=str, default="PhysioNet_EEG",
+                        choices=["PhysioNet_EEG", "ABCD_fMRI"],
+                        help="Dataset to use")
+    parser.add_argument("--parcel-type", type=str, default="HCP180",
+                        help="fMRI parcellation type (ABCD only)")
+    parser.add_argument("--target-phenotype", type=str, default="ADHD_label",
+                        help="Target phenotype column (ABCD only)")
     parser.add_argument("--sampling-freq", type=int, default=16,
                         help="EEG resampling frequency (Hz)")
     parser.add_argument("--sample-size", type=int, default=50,
-                        help="Number of PhysioNet subjects (1-109)")
+                        help="Number of subjects (PhysioNet: 1-109, ABCD: 0=all)")
 
     # Experiment
     parser.add_argument("--seed", type=int, default=2025)
@@ -549,12 +586,29 @@ def main():
 
     # --- Data Loading -------------------------------------------------------
     print("\n" + "=" * 80)
-    print("Loading PhysioNet EEG Dataset...")
+    print(f"Loading {args.dataset} Dataset...")
     print("=" * 80)
-    train_loader, val_loader, test_loader, input_dim = load_eeg_ts_revised(
-        seed=args.seed, device=device, batch_size=args.batch_size,
-        sampling_freq=args.sampling_freq, sample_size=args.sample_size,
-    )
+
+    if args.dataset == "PhysioNet_EEG":
+        train_loader, val_loader, test_loader, input_dim = load_eeg_ts_revised(
+            seed=args.seed, device=device, batch_size=args.batch_size,
+            sampling_freq=args.sampling_freq, sample_size=args.sample_size,
+        )
+    elif args.dataset == "ABCD_fMRI":
+        sample_sz = args.sample_size if args.sample_size > 0 else None
+        train_loader, val_loader, test_loader, input_dim = load_abcd_fmri(
+            seed=args.seed, device=device, batch_size=args.batch_size,
+            parcel_type=args.parcel_type,
+            target_phenotype=args.target_phenotype,
+            task_type="binary",
+            sample_size=sample_sz,
+        )
+        # Transpose (N, T, R) -> (N, R, T) to match (B, C, T) convention
+        train_loader, val_loader, test_loader, input_dim = transpose_fmri_loaders(
+            train_loader, val_loader, test_loader, input_dim,
+            args.batch_size, device,
+        )
+
     n_trials, n_channels, n_timesteps = input_dim
     print(f"\nInput: {n_trials} trials, {n_channels} channels, "
           f"{n_timesteps} timesteps")

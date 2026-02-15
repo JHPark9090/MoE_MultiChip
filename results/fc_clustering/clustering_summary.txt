@@ -1,0 +1,84 @@
+ABCD fMRI FC Clustering — Summary
+============================================================
+Feature type: fc
+N subjects: 4458
+N ROIs: 180
+N features (upper tri): 16110
+Fisher z-transform: True
+PCA components: 997 (variance: 0.9494)
+Optimal k (recommended): 2
+
+
+============================================================
+Optimal k Recommendation
+============================================================
+  k=2: sil=0.2588, CH=1707.9, DB=1.5077, composite=3.000 <-- BEST
+  k=3: sil=0.1511, CH=1168.2, DB=1.9971, composite=1.509
+  k=4: sil=0.1380, CH=897.2, DB=2.0623, composite=1.153
+  k=5: sil=0.0924, CH=742.4, DB=2.3032, composite=0.549
+  k=6: sil=0.0860, CH=634.6, DB=2.3370, composite=0.393
+  k=7: sil=0.0643, CH=553.4, DB=2.4962, composite=0.054
+  k=8: sil=0.0638, CH=491.0, DB=2.4357, composite=0.061
+
+Recommended optimal k = 2
+Reasoning: Combined ranking across silhouette (higher=better), Calinski-Harabasz (higher=better), and Davies-Bouldin (lower=better).
+
+============================================================
+Cross-tabulation: Cluster x ADHD Label
+============================================================
+         ADHD=0  ADHD=1   All
+Cluster                      
+0           892     764  1656
+1          1646    1156  2802
+All        2538    1920  4458
+
+Chi-squared test: chi2=9.9071, p=1.6464e-03, dof=1
+=> Significant association between clusters and ADHD label (p < 0.05)
+
+============================================================
+Per-cluster Demographics
+============================================================
+
+--- Cluster 0 (n=1656) ---
+  ADHD prevalence: 0.461
+  Age: mean=119.02, std=7.35
+  Sex distribution:
+sex
+0.0    0.584848
+1.0    0.415152
+  Top 5 sites:
+abcd_site
+6.0     153
+21.0    137
+14.0    136
+16.0    125
+20.0    116
+  Race/ethnicity:
+race.ethnicity
+1.0    0.560753
+3.0    0.207169
+2.0    0.108141
+5.0    0.102066
+4.0    0.021871
+
+--- Cluster 1 (n=2802) ---
+  ADHD prevalence: 0.413
+  Age: mean=119.42, std=7.49
+  Sex distribution:
+sex
+0.0    0.529032
+1.0    0.470968
+  Top 5 sites:
+abcd_site
+16.0    311
+19.0    220
+3.0     185
+4.0     170
+20.0    167
+  Race/ethnicity:
+race.ethnicity
+1.0    0.531205
+3.0    0.192253
+2.0    0.158178
+5.0    0.102224
+4.0    0.016141

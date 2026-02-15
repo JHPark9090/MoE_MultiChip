@@ -16,6 +16,8 @@ import scipy.constants  # noqa: F401
 # Import custom modules
 from models.QTSTransformer_v2_5 import QuantumTSTransformer
 from dataloaders.Load_PhysioNet_EEG import load_eeg_ts_revised
+from dataloaders.Load_ABCD_fMRI import load_abcd_fmri
+from torch.utils.data import DataLoader, TensorDataset
 
 import sys
 sys.path.insert(0, "/pscratch/sd/j/junghoon")
@@ -43,13 +45,21 @@ def get_args():
     parser.add_argument("--patience", type=int, default=20, help="Early stopping patience")
 
     # Data hyperparameters
+    parser.add_argument("--dataset", type=str, default="PhysioNet_EEG",
+                        choices=["PhysioNet_EEG", "ABCD_fMRI"], help="Dataset to use")
+    parser.add_argument("--parcel-type", type=str, default="HCP180",
+                        help="fMRI parcellation type (ABCD only)")
+    parser.add_argument("--target-phenotype", type=str, default="ADHD_label",
+                        help="Target phenotype column (ABCD only)")
     parser.add_argument("--sampling-freq", type=int, default=16, help="EEG sampling frequency (Hz)")
-    parser.add_argument("--sample-size", type=int, default=50, help="Number of subjects to load (1-109)")
+    parser.add_argument("--sample-size", type=int, default=50, help="Number of subjects (PhysioNet: 1-109, ABCD: 0=all)")
 
     # Experiment settings
     parser.add_argument("--seed", type=int, default=2025, help="Random seed")
     parser.add_argument("--job-id", type=str, default="QTS_PhysioNet", help="Job ID for logging")
     parser.add_argument("--resume", action="store_true", default=False, help="Resume from checkpoint")
+    parser.add_argument("--base-path", type=str, default="./checkpoints",
+                        help="Directory for checkpoints and logs")
 
     return parser.parse_args()
 
@@ -71,6 +81,28 @@ def epoch_time(start_time: float, end_time: float) -> Tuple[int, int]:
     elapsed_mins = int(elapsed_time / 60)
     elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
     return elapsed_mins, elapsed_secs
+
+
+def transpose_fmri_loaders(train_loader, val_loader, test_loader, input_dim,
+                            batch_size, device):
+    """Transpose fMRI data from (N, T, R) to (N, R, T) to match (B, C, T) convention."""
+    new_loaders = []
+    for loader in [train_loader, val_loader, test_loader]:
+        all_x = []
+        all_y = []
+        for x, y in loader:
+            all_x.append(x)
+            all_y.append(y)
+        X = torch.cat(all_x, dim=0)
+        Y = torch.cat(all_y, dim=0)
+        X = X.permute(0, 2, 1)  # (N, T, R) -> (N, R, T)
+        ds = TensorDataset(X, Y)
+        shuffle = (loader is train_loader)
+        new_loaders.append(DataLoader(ds, batch_size=batch_size, shuffle=shuffle))
+
+    n_samples, n_time, n_rois = input_dim
+    transposed_dim = (n_samples, n_rois, n_time)
+    return new_loaders[0], new_loaders[1], new_loaders[2], transposed_dim
 
 
 def train(model, train_loader, optimizer, criterion, device):
@@ -197,17 +229,29 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    # Load PhysioNet EEG data
+    # Load data
     print("\n" + "="*80)
-    print("Loading PhysioNet EEG Dataset...")
+    print(f"Loading {args.dataset} Dataset...")
     print("="*80)
-    train_loader, val_loader, test_loader, input_dim = load_eeg_ts_revised(
-        seed=args.seed,
-        device=device,
-        batch_size=args.batch_size,
-        sampling_freq=args.sampling_freq,
-        sample_size=args.sample_size
-    )
+
+    if args.dataset == "PhysioNet_EEG":
+        train_loader, val_loader, test_loader, input_dim = load_eeg_ts_revised(
+            seed=args.seed, device=device, batch_size=args.batch_size,
+            sampling_freq=args.sampling_freq, sample_size=args.sample_size,
+        )
+    elif args.dataset == "ABCD_fMRI":
+        sample_sz = args.sample_size if args.sample_size > 0 else None
+        train_loader, val_loader, test_loader, input_dim = load_abcd_fmri(
+            seed=args.seed, device=device, batch_size=args.batch_size,
+            parcel_type=args.parcel_type,
+            target_phenotype=args.target_phenotype,
+            task_type="binary",
+            sample_size=sample_sz,
+        )
+        train_loader, val_loader, test_loader, input_dim = transpose_fmri_loaders(
+            train_loader, val_loader, test_loader, input_dim,
+            args.batch_size, device,
+        )
 
     n_trials, n_channels, n_timesteps = input_dim
     print(f"\nInput dimensions: {n_trials} trials, {n_channels} channels, {n_timesteps} timesteps")
@@ -237,7 +281,7 @@ def main():
     criterion = nn.BCEWithLogitsLoss()
 
     # Setup checkpoint directory
-    checkpoint_dir = "./checkpoints"
+    checkpoint_dir = args.base_path
     os.makedirs(checkpoint_dir, exist_ok=True)
     checkpoint_path = os.path.join(checkpoint_dir, f"QTS_PhysioNet_{args.job_id}.pt")
 
