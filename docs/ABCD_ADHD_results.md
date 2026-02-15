@@ -34,7 +34,7 @@
 
 ### Quantum MoE (Quantum Distributed EEG MoE)
 
-- **Job ID**: 48949930 (submitted 2026-02-15, pending)
+- **Job ID**: 48949930
 - **Architecture**: `QuantumDistributedEEGMoE` — 4 QTS experts (8Q/2L/D3), 64 hidden dim, halo=2, input-based classical gating
 - **Training**: Adam (lr=1e-3, wd=1e-5), cosine LR schedule, batch_size=32, grad_clip=1.0
 - **Regularization**: dropout=0.1, balance_loss_alpha=0.01, patience=20
@@ -53,7 +53,7 @@
 |-------|--------|--------|-------------|----------|----------|------------|--------|
 | Classical MoE | 508,197 | 33 (ES@13) | 0.6213 | 0.5802 | 0.5516 | ~1-2s | 48949632 |
 | Standalone QTS | 12,008 | 34 (ES@14) | 0.5964 | 0.5648 | 0.5874 | ~1m 9s | 48949635 |
-| Quantum MoE | ~35K | — | — | — | — | — | 48949930 |
+| Quantum MoE | 34,657 | 38 (ES@18) | 0.5607 | 0.5605 | 0.5755 | ~3m 5s | 48949930 |
 
 ES = early stopped, ES@N = best model saved at epoch N.
 
@@ -89,6 +89,54 @@ Epoch 33: E0:0.01 | E1:0.43 | E2:0.33 | E3:0.23  (E0 collapsed)
 - QTS had higher test accuracy (0.5874 vs 0.5516), suggesting better calibration
 - QTS generalized slightly better relative to its val AUC (test/val ratio: 0.95 vs 0.93)
 
+### Quantum MoE Analysis (Job 48949930)
+
+**Training dynamics**:
+- Very slow initial learning: accuracy was stuck at 56.92% (majority class) for the first 13 epochs
+- First sign of learning at epoch 14 (train AUC 0.5375, acc 56.96%)
+- Best Val AUC 0.5607 reached at epoch 18; train AUC was only 0.5317 at that point
+- After epoch 26, train AUC rose rapidly (0.60 → 0.77 by epoch 37) while val AUC collapsed
+- Early stopped at epoch 38 (patience=20 from epoch 18)
+
+**Expert utilization — severe collapse**:
+- Started balanced: E0:0.22, E1:0.25, E2:0.26, E3:0.27 (epoch 1)
+- E2 gradually dominated as training progressed
+- Complete collapse by epoch 38: E0:0.00, E1:0.01, E2:0.99, E3:0.00
+- The model effectively degenerated into a single-expert system
+
+**Epoch-by-epoch expert utilization**:
+```
+Epoch  1: E0:0.22 | E1:0.25 | E2:0.26 | E3:0.27  (balanced)
+Epoch 18: E0:0.26 | E1:0.31 | E2:0.25 | E3:0.19  (best model, still reasonable)
+Epoch 26: E0:0.17 | E1:0.23 | E2:0.48 | E3:0.12  (E2 starting to dominate)
+Epoch 33: E0:0.00 | E1:0.09 | E2:0.91 | E3:0.00  (near-total collapse)
+Epoch 38: E0:0.00 | E1:0.01 | E2:0.99 | E3:0.00  (single expert)
+```
+
+**Comparison to other models**:
+- Test AUC (0.5605) is comparable to QTS (0.5648) but slightly lower than Classical MoE (0.5802)
+- 34.7K params — 14.7x fewer than Classical MoE (508K), 2.9x more than QTS (12K)
+- Expert collapse was even more severe than Classical MoE (99% vs 64% max expert share)
+- Load-balancing loss (alpha=0.01) completely failed to prevent collapse
+
+### Cross-Model Comparison
+
+| Metric | Classical MoE | Standalone QTS | Quantum MoE |
+|--------|--------------|----------------|-------------|
+| **Test AUC** | **0.5802** | 0.5648 | 0.5605 |
+| **Test Acc** | 0.5516 | **0.5874** | 0.5755 |
+| Params | 508,197 | **12,008** | 34,657 |
+| AUC per 1K params | 0.00114 | **0.0470** | 0.0162 |
+| Expert collapse | E0→1% | N/A | E2→99% |
+| Time/Epoch | ~1-2s | ~1m 9s | ~3m 5s |
+
+**Key takeaways**:
+1. All three models perform near-chance on ABCD ADHD (AUC 0.56-0.58), suggesting the task is inherently difficult with resting-state fMRI alone
+2. **Standalone QTS** is the most parameter-efficient: best AUC/param ratio by far
+3. **Expert collapse is a critical problem** for both MoE variants, especially Quantum MoE where a single expert (E2, ROIs 90-135) captured 99% of routing
+4. **Spatial decomposition hurts** on this task: breaking 180 ROIs into 4 groups destroys long-range functional connectivity patterns important for ADHD classification
+5. The balance_loss_alpha=0.01 is insufficient — need 0.05-0.1 or alternative strategies (e.g., hard expert dropout, capacity constraints)
+
 ## Previous Results (INVALIDATED)
 
 The following results were obtained on a **partial dataset (2,606 / 4,550 subjects)** and
@@ -106,14 +154,14 @@ Key observations from partial-dataset runs (may or may not hold on full dataset)
 
 ## Potential Improvements
 
-1. **Regularization**: Increase dropout (0.2-0.3), weight decay (1e-4), or add label smoothing — both models overfit significantly
-2. **Expert balancing**: Increase `balance-loss-alpha` (0.05-0.1) to address expert collapse in the Classical MoE (E0 dropped to 1% utilization)
-3. **Phenotypic features**: Include age, sex, motion parameters via `phenotypes_to_include`
-4. **Subject-aware MoE**: Use FC clustering results to inform expert specialization (set `num_experts` = optimal k from clustering)
-5. **Reduced model capacity**: For Classical MoE, try fewer experts (2-3), smaller hidden dim (32), or fewer layers (1) — the 508K param count is too large for 3,120 training samples
-6. **Data augmentation**: Time-series jittering, temporal cropping, or mixup
-7. **LR scheduler for QTS**: The standalone QTS did not use a cosine LR schedule (unlike the MoE runs); adding one may improve convergence
-8. **Quantum MoE**: Evaluate whether distributing quantum processing across spatial channel partitions (with input-based gating) can improve over standalone QTS while remaining parameter-efficient (~35K vs 508K)
+1. **Expert balancing** (critical): Increase `balance-loss-alpha` to 0.05-0.1 — both MoE variants suffered severe expert collapse (Classical: E0→1%, Quantum: E2→99%). Consider hard expert dropout or capacity constraints
+2. **Regularization**: Increase dropout (0.2-0.3), weight decay (1e-4), or add label smoothing — all three models overfit
+3. **Phenotypic features**: Include age, sex, motion parameters via `phenotypes_to_include` — resting-state fMRI alone yields near-chance ADHD classification
+4. **Subject-aware MoE**: Use FC/coherence clustering results to inform expert specialization (route subjects by neural subtype instead of spatial channel partition)
+5. **Reduced model capacity**: For Classical MoE, try fewer experts (2-3), smaller hidden dim (32), or fewer layers (1) — 508K params is excessive for 3,120 training samples
+6. **All-channel quantum processing**: Quantum MoE's spatial decomposition hurts performance. Consider experts that each process all 180 ROIs but with different circuit configurations, or fewer experts (2) with larger channel groups
+7. **Data augmentation**: Time-series jittering, temporal cropping, or mixup
+8. **LR scheduler for QTS**: The standalone QTS did not use a cosine LR schedule; adding one may improve convergence
 
 ## Reproducibility
 
