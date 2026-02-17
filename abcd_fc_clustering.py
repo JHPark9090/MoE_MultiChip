@@ -50,7 +50,8 @@ from sklearn.metrics import (
     calinski_harabasz_score,
     davies_bouldin_score,
 )
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.linear_model import LinearRegression
 from sklearn.manifold import TSNE
 
 import matplotlib
@@ -83,12 +84,12 @@ def _get_fmri_path(data_root, subject_id, parcel_type=PARCEL_TYPE):
 # ---------------------------------------------------------------------------
 # 1. Data loading
 # ---------------------------------------------------------------------------
-def load_subjects(data_root, min_timepoints=300):
+def load_subjects(data_root, min_timepoints=300, target_phenotype="ADHD_label"):
     """Load phenotype CSV and filter to subjects with valid fMRI on disk."""
     csv_path = os.path.join(data_root, "ABCD_phenotype_total.csv")
     pheno = pd.read_csv(csv_path)
 
-    required = ["subjectkey", "ADHD_label"]
+    required = ["subjectkey", target_phenotype]
     optional_demo = ["age", "sex", "race.ethnicity", "abcd_site"]
     keep_cols = required + [c for c in optional_demo if c in pheno.columns]
     pheno = pheno[keep_cols].dropna(subset=required).reset_index(drop=True)
@@ -109,7 +110,7 @@ def load_subjects(data_root, min_timepoints=300):
 
     pheno = pheno[valid].reset_index(drop=True)
     print(f"[FC-Cluster] Valid subjects (T>={min_timepoints}): {len(pheno)}")
-    print(f"[FC-Cluster] ADHD label distribution:\n{pheno['ADHD_label'].value_counts().to_string()}")
+    print(f"[FC-Cluster] {target_phenotype} distribution:\n{pheno[target_phenotype].value_counts().to_string()}")
     return pheno
 
 
@@ -333,6 +334,47 @@ def run_pca(fc_features, variance_threshold=0.95, n_components_override=None):
 
 
 # ---------------------------------------------------------------------------
+# 3b. Site regression (confound removal)
+# ---------------------------------------------------------------------------
+def regress_out_site(features, site_labels):
+    """Regress out site effects from connectivity features.
+
+    For each feature column, fits OLS on one-hot site dummies and returns
+    the residuals.  This removes the linear effect of scanner/site from
+    every connectivity edge before PCA and clustering.
+
+    Args:
+        features: (N, F) array — connectivity features.
+        site_labels: (N,) array — site IDs (integer or string).
+
+    Returns:
+        residuals: (N, F) array — site-regressed features.
+    """
+    # Handle NaN site labels: assign to a placeholder group
+    sites = pd.Series(site_labels).fillna(-1).values.reshape(-1, 1)
+    enc = OneHotEncoder(sparse_output=False, drop="first")
+    X_site = enc.fit_transform(sites)  # (N, n_sites-1)
+
+    n_sites = X_site.shape[1] + 1
+    print(f"[Site-regress] Regressing out {n_sites} sites "
+          f"({X_site.shape[1]} dummy variables) from {features.shape[1]} features...")
+
+    reg = LinearRegression()
+    reg.fit(X_site, features)
+    predicted = reg.predict(X_site)
+    residuals = features - predicted
+
+    # Report variance explained by site
+    ss_total = np.sum((features - features.mean(axis=0, keepdims=True)) ** 2)
+    ss_residual = np.sum(residuals ** 2)
+    r2 = 1.0 - ss_residual / ss_total
+    print(f"[Site-regress] Overall R² (site → features): {r2:.4f} "
+          f"({r2*100:.1f}% of variance explained by site)")
+
+    return residuals
+
+
+# ---------------------------------------------------------------------------
 # 4. Clustering
 # ---------------------------------------------------------------------------
 def run_clustering(X_pca, max_k=8, seed=2025):
@@ -490,8 +532,10 @@ def plot_silhouette_diagram(X_pca, labels, k, output_dir):
     plt.close(fig)
 
 
-def plot_tsne(X_pca, labels, adhd_labels, k, output_dir, seed=2025):
-    """Plot 6: t-SNE coloured by cluster and by ADHD label."""
+def plot_tsne(X_pca, labels, phenotype_labels, k, output_dir, seed=2025,
+              phenotype_name="ADHD_label"):
+    """Plot 6: t-SNE coloured by cluster and by phenotype label."""
+    phenotype_short = phenotype_name.replace("_label", "")
     print("[Plot] Computing t-SNE...")
     tsne = TSNE(n_components=2, random_state=seed, perplexity=30, max_iter=1000)
     X_2d = tsne.fit_transform(X_pca)
@@ -503,11 +547,12 @@ def plot_tsne(X_pca, labels, adhd_labels, k, output_dir, seed=2025):
     ax1.set_title(f"t-SNE: Cluster (k={k})")
     ax1.legend(*scatter1.legend_elements(), title="Cluster", loc="best", markerscale=3)
 
-    adhd_colors = ["#4CAF50", "#F44336"]
-    for val, color, label in [(0, adhd_colors[0], "Non-ADHD"), (1, adhd_colors[1], "ADHD")]:
-        mask = adhd_labels == val
+    colors = ["#4CAF50", "#F44336"]
+    for val, color, label in [(0, colors[0], f"Non-{phenotype_short}"),
+                               (1, colors[1], phenotype_short)]:
+        mask = phenotype_labels == val
         ax2.scatter(X_2d[mask, 0], X_2d[mask, 1], c=color, s=5, alpha=0.5, label=label)
-    ax2.set_title("t-SNE: ADHD Label")
+    ax2.set_title(f"t-SNE: {phenotype_short} Label")
     ax2.legend(markerscale=3)
 
     fig.tight_layout()
@@ -516,8 +561,36 @@ def plot_tsne(X_pca, labels, adhd_labels, k, output_dir, seed=2025):
     return X_2d
 
 
-def plot_umap(X_pca, labels, adhd_labels, k, output_dir, seed=2025):
-    """Plot 7: UMAP coloured by cluster and ADHD label."""
+def plot_tsne_by_site(X_2d, labels, site_labels, k, output_dir):
+    """Plot 6b: t-SNE coloured by cluster and by site (confound check)."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+
+    scatter1 = ax1.scatter(X_2d[:, 0], X_2d[:, 1], c=labels, cmap="tab10",
+                           s=5, alpha=0.6)
+    ax1.set_title(f"t-SNE: Cluster (k={k})")
+    ax1.legend(*scatter1.legend_elements(), title="Cluster", loc="best", markerscale=3)
+
+    # Color by site (use integer-encoded sites for colormap, handle NaN)
+    sites = pd.Series(site_labels).fillna(-1).astype(int).values
+    unique_sites = np.unique(sites)
+    site_to_int = {s: i for i, s in enumerate(unique_sites)}
+    site_int = np.array([site_to_int[s] for s in sites])
+
+    scatter2 = ax2.scatter(X_2d[:, 0], X_2d[:, 1], c=site_int,
+                           cmap="tab20", s=5, alpha=0.6)
+    ax2.set_title(f"t-SNE: ABCD Site ({len(unique_sites)} sites)")
+    cbar = fig.colorbar(scatter2, ax=ax2, fraction=0.046, pad=0.04)
+    cbar.set_label("Site")
+
+    fig.tight_layout()
+    fig.savefig(os.path.join(output_dir, "06b_tsne_by_site.png"), dpi=150)
+    plt.close(fig)
+
+
+def plot_umap(X_pca, labels, phenotype_labels, k, output_dir, seed=2025,
+              phenotype_name="ADHD_label"):
+    """Plot 7: UMAP coloured by cluster and phenotype label."""
+    phenotype_short = phenotype_name.replace("_label", "")
     try:
         import umap
     except ImportError:
@@ -535,11 +608,12 @@ def plot_umap(X_pca, labels, adhd_labels, k, output_dir, seed=2025):
     ax1.set_title(f"UMAP: Cluster (k={k})")
     ax1.legend(*scatter1.legend_elements(), title="Cluster", loc="best", markerscale=3)
 
-    adhd_colors = ["#4CAF50", "#F44336"]
-    for val, color, label in [(0, adhd_colors[0], "Non-ADHD"), (1, adhd_colors[1], "ADHD")]:
-        mask = adhd_labels == val
+    colors = ["#4CAF50", "#F44336"]
+    for val, color, label in [(0, colors[0], f"Non-{phenotype_short}"),
+                               (1, colors[1], phenotype_short)]:
+        mask = phenotype_labels == val
         ax2.scatter(X_2d[mask, 0], X_2d[mask, 1], c=color, s=5, alpha=0.5, label=label)
-    ax2.set_title("UMAP: ADHD Label")
+    ax2.set_title(f"UMAP: {phenotype_short} Label")
     ax2.legend(markerscale=3)
 
     fig.tight_layout()
@@ -548,17 +622,19 @@ def plot_umap(X_pca, labels, adhd_labels, k, output_dir, seed=2025):
     return X_2d
 
 
-def plot_cluster_composition(labels, adhd_labels, k, output_dir):
-    """Plot 8: Stacked bar chart of ADHD vs non-ADHD per cluster."""
+def plot_cluster_composition(labels, phenotype_labels, k, output_dir,
+                              phenotype_name="ADHD_label"):
+    """Plot 8: Stacked bar chart of phenotype-positive vs negative per cluster."""
+    phenotype_short = phenotype_name.replace("_label", "")
     fig, ax = plt.subplots(figsize=(8, 5))
     clusters = np.arange(k)
-    adhd_counts = np.array([np.sum((labels == c) & (adhd_labels == 1)) for c in clusters])
-    non_adhd_counts = np.array([np.sum((labels == c) & (adhd_labels == 0)) for c in clusters])
-    totals = adhd_counts + non_adhd_counts
+    pos_counts = np.array([np.sum((labels == c) & (phenotype_labels == 1)) for c in clusters])
+    neg_counts = np.array([np.sum((labels == c) & (phenotype_labels == 0)) for c in clusters])
+    totals = pos_counts + neg_counts
 
-    ax.bar(clusters, non_adhd_counts / totals * 100, label="Non-ADHD", color="#4CAF50")
-    ax.bar(clusters, adhd_counts / totals * 100, bottom=non_adhd_counts / totals * 100,
-           label="ADHD", color="#F44336")
+    ax.bar(clusters, neg_counts / totals * 100, label=f"Non-{phenotype_short}", color="#4CAF50")
+    ax.bar(clusters, pos_counts / totals * 100, bottom=neg_counts / totals * 100,
+           label=phenotype_short, color="#F44336")
 
     for c in clusters:
         ax.text(c, 50, f"n={totals[c]}", ha="center", va="center", fontsize=9, fontweight="bold")
@@ -663,27 +739,29 @@ def plot_dendrogram(X_pca, output_dir):
 # ---------------------------------------------------------------------------
 # 6. Statistical analysis
 # ---------------------------------------------------------------------------
-def statistical_analysis(pheno, labels, optimal_k, output_dir):
+def statistical_analysis(pheno, labels, optimal_k, output_dir,
+                          target_phenotype="ADHD_label"):
     """Cross-tabulation and per-cluster demographic analysis."""
+    phenotype_short = target_phenotype.replace("_label", "")
     lines = []
 
-    adhd = pheno["ADHD_label"].values.astype(int)
+    phenotype_vals = pheno[target_phenotype].values.astype(int)
 
-    # --- Cross-tabulation: cluster x ADHD ---
-    ct = pd.crosstab(labels, adhd, margins=True)
+    # --- Cross-tabulation: cluster x phenotype ---
+    ct = pd.crosstab(labels, phenotype_vals, margins=True)
     ct.index.name = "Cluster"
-    ct.columns = [f"ADHD={c}" if c != "All" else "All" for c in ct.columns]
+    ct.columns = [f"{phenotype_short}={c}" if c != "All" else "All" for c in ct.columns]
     lines.append("=" * 60)
-    lines.append("Cross-tabulation: Cluster x ADHD Label")
+    lines.append(f"Cross-tabulation: Cluster x {target_phenotype}")
     lines.append("=" * 60)
     lines.append(ct.to_string())
 
     # Chi-squared test
-    contingency = pd.crosstab(labels, adhd)
+    contingency = pd.crosstab(labels, phenotype_vals)
     chi2, p_val, dof, expected = stats.chi2_contingency(contingency)
     lines.append(f"\nChi-squared test: chi2={chi2:.4f}, p={p_val:.4e}, dof={dof}")
     if p_val < 0.05:
-        lines.append("=> Significant association between clusters and ADHD label (p < 0.05)")
+        lines.append(f"=> Significant association between clusters and {target_phenotype} (p < 0.05)")
     else:
         lines.append("=> No significant association (p >= 0.05)")
 
@@ -696,7 +774,7 @@ def statistical_analysis(pheno, labels, optimal_k, output_dir):
         mask = labels == c
         sub = pheno[mask]
         lines.append(f"\n--- Cluster {c} (n={mask.sum()}) ---")
-        lines.append(f"  ADHD prevalence: {adhd[mask].mean():.3f}")
+        lines.append(f"  {phenotype_short} prevalence: {phenotype_vals[mask].mean():.3f}")
 
         if "age" in sub.columns:
             lines.append(f"  Age: mean={sub['age'].mean():.2f}, std={sub['age'].std():.2f}")
@@ -784,6 +862,10 @@ def main():
     parser.add_argument("--freq-band", type=float, nargs=2, default=[0.01, 0.1],
                         metavar=("F_LOW", "F_HIGH"),
                         help="Frequency band for coherence averaging (Hz)")
+    parser.add_argument("--regress-site", action="store_true",
+                        help="Regress out ABCD site effects before PCA (confound removal)")
+    parser.add_argument("--target-phenotype", type=str, default="ADHD_label",
+                        help="Phenotype column for subject filtering and analysis")
     args = parser.parse_args()
 
     np.random.seed(args.seed)
@@ -796,14 +878,17 @@ def main():
     print(f"Data root: {args.data_root}")
     print(f"Output dir: {args.output_dir}")
     print(f"Feature type: {args.feature_type}")
+    print(f"Target phenotype: {args.target_phenotype}")
     print(f"Seed: {args.seed}, Max k: {args.max_k}")
     print(f"Fisher z-transform: {args.use_fisher_z}")
     if args.feature_type == "coherence":
         print(f"TR: {args.tr}s, Freq band: {args.freq_band} Hz")
+    if args.regress_site:
+        print(f"Site regression: ENABLED")
     print()
 
     # 1. Load subjects
-    pheno = load_subjects(args.data_root)
+    pheno = load_subjects(args.data_root, target_phenotype=args.target_phenotype)
 
     # 2. Compute connectivity features
     if args.feature_type == "coherence":
@@ -816,6 +901,12 @@ def main():
         fc_features, n_rois = compute_fc_features(
             pheno, args.data_root, args.use_fisher_z
         )
+
+    # 2b. (Optional) Regress out site effects
+    if args.regress_site:
+        if "abcd_site" not in pheno.columns:
+            raise ValueError("--regress-site requires 'abcd_site' column in phenotype data")
+        fc_features = regress_out_site(fc_features, pheno["abcd_site"].values)
 
     # 3. PCA
     n_comp = args.n_pca_components if args.n_pca_components > 0 else None
@@ -843,15 +934,20 @@ def main():
     plot_silhouette_comparison(results, args.output_dir)
     plot_calinski_davies(results, args.output_dir)
     plot_silhouette_diagram(X_pca, optimal_labels, optimal_k, args.output_dir)
-    plot_tsne(X_pca, optimal_labels, pheno["ADHD_label"].values, optimal_k,
-              args.output_dir, args.seed)
+    X_2d = plot_tsne(X_pca, optimal_labels, pheno[args.target_phenotype].values, optimal_k,
+                     args.output_dir, args.seed, phenotype_name=args.target_phenotype)
+
+    # Site-coloured t-SNE for confound visualization
+    if "abcd_site" in pheno.columns:
+        plot_tsne_by_site(X_2d, optimal_labels, pheno["abcd_site"].values,
+                          optimal_k, args.output_dir)
 
     if not args.skip_umap:
-        plot_umap(X_pca, optimal_labels, pheno["ADHD_label"].values, optimal_k,
-                  args.output_dir, args.seed)
+        plot_umap(X_pca, optimal_labels, pheno[args.target_phenotype].values, optimal_k,
+                  args.output_dir, args.seed, phenotype_name=args.target_phenotype)
 
-    plot_cluster_composition(optimal_labels, pheno["ADHD_label"].values, optimal_k,
-                             args.output_dir)
+    plot_cluster_composition(optimal_labels, pheno[args.target_phenotype].values, optimal_k,
+                             args.output_dir, phenotype_name=args.target_phenotype)
     plot_mean_connectivity_heatmaps(
         pheno, args.data_root, optimal_labels, optimal_k, n_rois,
         args.feature_type, args.use_fisher_z, args.output_dir,
@@ -861,7 +957,8 @@ def main():
 
     # 6. Statistical analysis
     print("\n[Stats] Running statistical analysis...")
-    stats_text = statistical_analysis(pheno, optimal_labels, optimal_k, args.output_dir)
+    stats_text = statistical_analysis(pheno, optimal_labels, optimal_k, args.output_dir,
+                                       target_phenotype=args.target_phenotype)
     print(stats_text)
 
     # 7. Save outputs
@@ -895,10 +992,12 @@ def main():
     summary_lines.append(f"ABCD fMRI {feat_label} Clustering — Summary")
     summary_lines.append("=" * 60)
     summary_lines.append(f"Feature type: {args.feature_type}")
+    summary_lines.append(f"Target phenotype: {args.target_phenotype}")
     summary_lines.append(f"N subjects: {len(pheno)}")
     summary_lines.append(f"N ROIs: {n_rois}")
     summary_lines.append(f"N features (upper tri): {fc_features.shape[1]}")
     summary_lines.append(f"Fisher z-transform: {args.use_fisher_z}")
+    summary_lines.append(f"Site regression: {args.regress_site}")
     if args.feature_type == "coherence":
         summary_lines.append(f"TR: {args.tr}s, Freq band: {args.freq_band} Hz")
     summary_lines.append(f"PCA components: {X_pca.shape[1]} "

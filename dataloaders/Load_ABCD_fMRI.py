@@ -29,6 +29,8 @@ def load_abcd_fmri(
     clip_std=10.0,
     num_workers=0,
     data_root=ABCD_DATA_ROOT,
+    cluster_file=None,
+    cluster_column="km_cluster",
 ):
     """
     Loads and preprocesses the ABCD resting-state fMRI dataset.
@@ -69,6 +71,12 @@ def load_abcd_fmri(
             after normalization. Default 10.0. Set to None to disable.
         num_workers (int): Number of DataLoader workers. Default 0.
         data_root (str): Root directory containing the ABCD data.
+        cluster_file (str or None): Path to a CSV containing cluster
+            assignments keyed by ``subjectkey``. When provided, each
+            DataLoader yields 3-element tuples ``(X, y, cluster)``
+            instead of 2-element tuples. Default None (backward compatible).
+        cluster_column (str): Column name in *cluster_file* containing
+            integer cluster labels. Default ``"km_cluster"``.
 
     Returns:
         tuple: (train_loader, val_loader, test_loader, input_dim)
@@ -241,22 +249,51 @@ def load_abcd_fmri(
         print(f"[ABCD] Validation set shape: {X_val.shape}")
         print(f"[ABCD] Test set shape: {X_test.shape}")
 
-    # --- Step 9: Create DataLoaders ---
+    # --- Step 9: Cluster labels (optional) ---
+    c_train = c_val = c_test = None
+    if cluster_file is not None:
+        cluster_df = pd.read_csv(cluster_file)
+        cluster_map = dict(zip(cluster_df["subjectkey"], cluster_df[cluster_column]))
+        cluster_labels = np.array(
+            [cluster_map.get(sid, 0) for sid in subject_ids], dtype=np.int64
+        )
+        c_train = cluster_labels[train_idx]
+        c_val = cluster_labels[val_idx]
+        c_test = cluster_labels[test_idx]
+        n_clusters = len(np.unique(cluster_labels))
+        n_mapped = sum(1 for sid in subject_ids if sid in cluster_map)
+        print(f"\n[ABCD] Cluster labels loaded from {cluster_file}")
+        print(f"[ABCD] Column: {cluster_column}, k={n_clusters}, "
+              f"mapped {n_mapped}/{len(subject_ids)} subjects")
+
+    # --- Step 10: Create DataLoaders ---
     g = torch.Generator()
     g.manual_seed(seed)
 
-    train_dataset = TensorDataset(
-        torch.tensor(X_train, dtype=torch.float32).to(device),
-        torch.tensor(y_train, dtype=label_dtype).to(device),
-    )
-    val_dataset = TensorDataset(
-        torch.tensor(X_val, dtype=torch.float32).to(device),
-        torch.tensor(y_val, dtype=label_dtype).to(device),
-    )
-    test_dataset = TensorDataset(
-        torch.tensor(X_test, dtype=torch.float32).to(device),
-        torch.tensor(y_test, dtype=label_dtype).to(device),
-    )
+    X_train_t = torch.tensor(X_train, dtype=torch.float32).to(device)
+    y_train_t = torch.tensor(y_train, dtype=label_dtype).to(device)
+    X_val_t = torch.tensor(X_val, dtype=torch.float32).to(device)
+    y_val_t = torch.tensor(y_val, dtype=label_dtype).to(device)
+    X_test_t = torch.tensor(X_test, dtype=torch.float32).to(device)
+    y_test_t = torch.tensor(y_test, dtype=label_dtype).to(device)
+
+    if c_train is not None:
+        train_dataset = TensorDataset(
+            X_train_t, y_train_t,
+            torch.tensor(c_train, dtype=torch.long).to(device),
+        )
+        val_dataset = TensorDataset(
+            X_val_t, y_val_t,
+            torch.tensor(c_val, dtype=torch.long).to(device),
+        )
+        test_dataset = TensorDataset(
+            X_test_t, y_test_t,
+            torch.tensor(c_test, dtype=torch.long).to(device),
+        )
+    else:
+        train_dataset = TensorDataset(X_train_t, y_train_t)
+        val_dataset = TensorDataset(X_val_t, y_val_t)
+        test_dataset = TensorDataset(X_test_t, y_test_t)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,
                               num_workers=num_workers, generator=g)

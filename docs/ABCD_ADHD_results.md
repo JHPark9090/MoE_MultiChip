@@ -4,12 +4,27 @@
 
 - **Source**: ABCD resting-state fMRI, HCP180 parcellation
 - **Target**: ADHD binary classification (`ADHD_label`)
-- **Valid subjects**: 4,458 (after filtering for fMRI availability, T>=300, and non-null ADHD_label)
+- **Valid subjects**: 4,458
 - **Total fMRI on disk**: 9,406 subjects (all three parcellations: HCP180, HCP360, Schaefer)
 - **Input shape**: (N, 363 timepoints, 180 ROIs)
 - **Split**: Train 3,120 / Val 669 / Test 669 (70/15/15, stratified)
 - **Class balance**: Train [1776 non-ADHD, 1344 ADHD] (~57% / 43%)
 - **Normalization**: per-ROI z-score (train-only stats), clipped to +/-10 std
+
+### Subject Filtering Breakdown
+
+| Stage | Count | Dropped | Reason |
+|-------|-------|---------|--------|
+| Phenotype CSV (total rows) | 11,877 | — | All subjects in `ABCD_phenotype_total.csv` |
+| With non-null ADHD_label | 5,781 | -6,096 | Missing ADHD diagnosis |
+| With HCP180 fMRI file on disk | 4,550 | -1,231 | No parcellated fMRI file available |
+| With T >= 300 timepoints | **4,458** | -92 | Truncated scans (T=20..293), likely due to excessive head motion or early scan termination |
+
+The `min_timepoints=300` QC filter (set in `Load_ABCD_fMRI.py`) removes 92 subjects
+whose fMRI scans were severely truncated. Most have very few usable timepoints (median T~113,
+smallest T=20 out of expected T=363). Including them would require heavy zero-padding
+(up to 94% padding) and introduce noisy/incomplete data. Remaining subjects are center-cropped
+or zero-padded to 363 timepoints as needed.
 
 > **Note (2026-02-15)**: Previous results (jobs 48941280 and 48941281) were run on only
 > 2,606 subjects due to missing fMRI files on disk. The missing 3,934 subjects have since

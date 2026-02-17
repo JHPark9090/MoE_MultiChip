@@ -7,3 +7,5 @@ test_checkpoints/
 logs/
 *.out
 *.err
+results/
+*.npy
