@@ -31,6 +31,8 @@ def load_abcd_fmri(
     data_root=ABCD_DATA_ROOT,
     cluster_file=None,
     cluster_column="km_cluster",
+    pca_file=None,
+    pca_components=64,
 ):
     """
     Loads and preprocesses the ABCD resting-state fMRI dataset.
@@ -77,6 +79,18 @@ def load_abcd_fmri(
             instead of 2-element tuples. Default None (backward compatible).
         cluster_column (str): Column name in *cluster_file* containing
             integer cluster labels. Default ``"km_cluster"``.
+        pca_file (str or None): Path to a ``.npy`` file containing PCA
+            features with shape ``(N_cluster, D)`` where rows correspond
+            1-to-1 to the rows in *cluster_file*. When provided together
+            with *cluster_file*, each DataLoader yields 3-element tuples
+            ``(X, y, pca_features)`` where ``pca_features`` has shape
+            ``(B, pca_components)`` and dtype ``float32``.  The PCA
+            features are z-scored using train-only statistics.  If both
+            *cluster_file* and *pca_file* are given, PCA features take
+            precedence (cluster integer labels are NOT included).
+            Default None (backward compatible).
+        pca_components (int): Number of top PCA components to keep from
+            *pca_file*. Default 64.
 
     Returns:
         tuple: (train_loader, val_loader, test_loader, input_dim)
@@ -249,17 +263,54 @@ def load_abcd_fmri(
         print(f"[ABCD] Validation set shape: {X_val.shape}")
         print(f"[ABCD] Test set shape: {X_test.shape}")
 
-    # --- Step 9: Cluster labels (optional) ---
-    c_train = c_val = c_test = None
-    if cluster_file is not None:
+    # --- Step 9: Cluster labels / PCA features (optional) ---
+    extra_train = extra_val = extra_test = None
+    extra_dtype = torch.long  # default for cluster labels
+
+    if pca_file is not None and cluster_file is not None:
+        # PCA features — rows in pca_file match rows in cluster_file 1:1
+        cluster_df = pd.read_csv(cluster_file)
+        pca_all = np.load(pca_file).astype(np.float32)  # (N_cluster, D)
+        pca_all = pca_all[:, :pca_components]  # keep top-K components
+
+        # Map subjectkey -> row index in cluster CSV / PCA array
+        cluster_sids = cluster_df["subjectkey"].values
+        sid_to_row = {sid: i for i, sid in enumerate(cluster_sids)}
+
+        # Build per-subject PCA array aligned with subject_ids
+        pca_aligned = np.zeros((len(subject_ids), pca_components), dtype=np.float32)
+        n_mapped = 0
+        for j, sid in enumerate(subject_ids):
+            if sid in sid_to_row:
+                pca_aligned[j] = pca_all[sid_to_row[sid]]
+                n_mapped += 1
+
+        # Z-score using train-only statistics
+        pca_train = pca_aligned[train_idx]
+        pca_mean = pca_train.mean(axis=0, keepdims=True)
+        pca_std = pca_train.std(axis=0, keepdims=True)
+        pca_std = np.where(pca_std < 1e-8, 1.0, pca_std)
+        pca_aligned = (pca_aligned - pca_mean) / pca_std
+
+        extra_train = pca_aligned[train_idx]
+        extra_val = pca_aligned[val_idx]
+        extra_test = pca_aligned[test_idx]
+        extra_dtype = torch.float32
+
+        print(f"\n[ABCD] PCA features loaded from {pca_file}")
+        print(f"[ABCD] Components: {pca_components}, "
+              f"mapped {n_mapped}/{len(subject_ids)} subjects")
+
+    elif cluster_file is not None:
         cluster_df = pd.read_csv(cluster_file)
         cluster_map = dict(zip(cluster_df["subjectkey"], cluster_df[cluster_column]))
         cluster_labels = np.array(
             [cluster_map.get(sid, 0) for sid in subject_ids], dtype=np.int64
         )
-        c_train = cluster_labels[train_idx]
-        c_val = cluster_labels[val_idx]
-        c_test = cluster_labels[test_idx]
+        extra_train = cluster_labels[train_idx]
+        extra_val = cluster_labels[val_idx]
+        extra_test = cluster_labels[test_idx]
+        extra_dtype = torch.long
         n_clusters = len(np.unique(cluster_labels))
         n_mapped = sum(1 for sid in subject_ids if sid in cluster_map)
         print(f"\n[ABCD] Cluster labels loaded from {cluster_file}")
@@ -277,18 +328,18 @@ def load_abcd_fmri(
     X_test_t = torch.tensor(X_test, dtype=torch.float32).to(device)
     y_test_t = torch.tensor(y_test, dtype=label_dtype).to(device)
 
-    if c_train is not None:
+    if extra_train is not None:
         train_dataset = TensorDataset(
             X_train_t, y_train_t,
-            torch.tensor(c_train, dtype=torch.long).to(device),
+            torch.tensor(extra_train, dtype=extra_dtype).to(device),
         )
         val_dataset = TensorDataset(
             X_val_t, y_val_t,
-            torch.tensor(c_val, dtype=torch.long).to(device),
+            torch.tensor(extra_val, dtype=extra_dtype).to(device),
         )
         test_dataset = TensorDataset(
             X_test_t, y_test_t,
-            torch.tensor(c_test, dtype=torch.long).to(device),
+            torch.tensor(extra_test, dtype=extra_dtype).to(device),
         )
     else:
         train_dataset = TensorDataset(X_train_t, y_train_t)

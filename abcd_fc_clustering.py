@@ -91,7 +91,7 @@ def load_subjects(data_root, min_timepoints=300, target_phenotype="ADHD_label"):
 
     required = ["subjectkey", target_phenotype]
     optional_demo = ["age", "sex", "race.ethnicity", "abcd_site"]
-    keep_cols = required + [c for c in optional_demo if c in pheno.columns]
+    keep_cols = required + [c for c in optional_demo if c in pheno.columns and c not in required]
     pheno = pheno[keep_cols].dropna(subset=required).reset_index(drop=True)
 
     # Check which subjects have valid fMRI files

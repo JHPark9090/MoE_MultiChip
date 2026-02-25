@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 """
-Cluster-Informed Mixture of Experts for ABCD Classification/Regression.
+Learned Routing Mixture of Experts for ABCD Classification/Regression.
 
-Key innovations over previous MoE approaches:
-1. All experts process ALL 180 ROIs (no spatial decomposition)
-2. Expert routing is informed by cluster labels from site-regressed
-   coherence clustering (k=2 genuine neural subtypes)
-3. Supports {Classical, Quantum} x {Soft gating, Hard routing}
+Replaces cluster one-hot gating input with top-64 PCA components from
+site-regressed coherence features, letting the gating network learn
+routing end-to-end from rich connectivity features.
+
+Key differences from ClusterInformedMoE:
+1. Gating input: concat(temporal_mean(x), pca_features) instead of
+   concat(temporal_mean(x), cluster_onehot)
+2. Hard routing uses a gating network with straight-through estimator
+   (forward=hard, backward=soft) instead of deterministic cluster assignment
+3. All experts run for every sample in both soft and hard modes
 
 Usage:
-    python ClusterInformedMoE_ABCD.py \
+    python LearnedRoutingMoE_ABCD.py \
         --model-type=classical --routing=soft \
-        --cluster-file=results/coherence_clustering_site_regressed/cluster_assignments.csv
+        --pca-file=results/coherence_clustering_site_regressed/fc_pca_features.npy \
+        --cluster-csv=results/coherence_clustering_site_regressed/cluster_assignments.csv
 """
 
 import os
@@ -70,26 +76,29 @@ def load_balancing_loss(gate_weights: torch.Tensor, num_experts: int) -> torch.T
     return num_experts * (f * P).sum()
 
 
-def transpose_fmri_loaders_with_clusters(train_loader, val_loader, test_loader,
-                                          input_dim, batch_size, device):
-    """Transpose fMRI data from (N, T, R) to (N, R, T) for 3-element datasets."""
+def transpose_fmri_loaders_with_pca(train_loader, val_loader, test_loader,
+                                     input_dim, batch_size, device):
+    """Transpose fMRI data from (N, T, R) to (N, R, T) for 3-element datasets.
+
+    The third element can be float PCA features (not just integer clusters).
+    """
     new_loaders = []
     for loader in [train_loader, val_loader, test_loader]:
-        all_x, all_y, all_c = [], [], []
-        has_clusters = False
+        all_x, all_y, all_extra = [], [], []
+        has_extra = False
         for batch in loader:
             all_x.append(batch[0])
             all_y.append(batch[1])
             if len(batch) == 3:
-                all_c.append(batch[2])
-                has_clusters = True
+                all_extra.append(batch[2])
+                has_extra = True
 
         X = torch.cat(all_x, dim=0).permute(0, 2, 1)  # (N, T, R) -> (N, R, T)
         Y = torch.cat(all_y, dim=0)
 
-        if has_clusters:
-            C = torch.cat(all_c, dim=0)
-            ds = TensorDataset(X, Y, C)
+        if has_extra:
+            E = torch.cat(all_extra, dim=0)
+            ds = TensorDataset(X, Y, E)
         else:
             ds = TensorDataset(X, Y)
 
@@ -152,20 +161,21 @@ class GatingNetwork(nn.Module):
         return F.softmax(logits, dim=-1)
 
 
-class ClusterInformedMoE(nn.Module):
+class LearnedRoutingMoE(nn.Module):
     """
-    Cluster-Informed Mixture of Experts.
+    Learned Routing Mixture of Experts.
 
-    All experts process the full 180-ROI input. Routing is informed by
-    cluster labels from site-regressed coherence clustering.
+    All experts process the full 180-ROI input. Routing is learned
+    end-to-end from PCA connectivity features.
 
     Supports:
     - model_type: "classical" (TransformerEncoder) or "quantum" (QuantumTSTransformer)
-    - routing: "soft" (gated, cluster-biased) or "hard" (deterministic by cluster)
+    - routing: "soft" (weighted combination) or "hard" (straight-through estimator)
     """
 
     def __init__(self, total_channels, time_points, num_experts,
                  expert_hidden_dim, model_type, routing,
+                 pca_dim=64,
                  # Classical args:
                  expert_layers=2, nhead=4,
                  # Quantum args:
@@ -182,6 +192,7 @@ class ClusterInformedMoE(nn.Module):
         self.model_type = model_type
         self.routing = routing
         self.expert_hidden_dim = expert_hidden_dim
+        self.pca_dim = pca_dim
 
         # --- Experts (all process full channels) ---
         if model_type == "classical":
@@ -214,76 +225,68 @@ class ClusterInformedMoE(nn.Module):
         else:
             raise ValueError(f"Unknown model_type: {model_type!r}")
 
-        # --- Routing ---
-        if routing == "soft":
-            # Gating input: temporal mean (C) + cluster one-hot (K)
-            gate_input_dim = total_channels + num_experts
-            self.input_summary = nn.Sequential(
-                nn.Linear(gate_input_dim, expert_hidden_dim),
-                nn.ReLU(),
-            )
-            self.gate = GatingNetwork(
-                expert_hidden_dim, num_experts, gating_noise_std,
-            )
+        # --- Gating (both soft and hard use a gating network) ---
+        # Input: temporal_mean(x) [C] + pca_features [pca_dim]
+        gate_input_dim = total_channels + pca_dim
+        self.input_summary = nn.Sequential(
+            nn.Linear(gate_input_dim, expert_hidden_dim),
+            nn.ReLU(),
+        )
+        self.gate = GatingNetwork(
+            expert_hidden_dim, num_experts, gating_noise_std,
+        )
 
         # --- Classifier ---
         output_dim = 1 if num_classes == 2 else num_classes
         self.classifier = nn.Linear(expert_hidden_dim, output_dim)
 
-    def forward(self, x, cluster_labels):
+    def forward(self, x, pca_features):
         """
         Args:
             x: (B, T, C) — full fMRI input
-            cluster_labels: (B,) — integer cluster assignments
+            pca_features: (B, pca_dim) — PCA connectivity features (float)
         Returns:
             logits: (B,) for binary or (B, num_classes) for multiclass
             gate_weights: (B, K) — expert routing weights
         """
         B = x.size(0)
 
+        # Gating input: temporal mean of fMRI + PCA features
+        summary_input = torch.cat(
+            [x.mean(dim=1), pca_features], dim=-1
+        )  # (B, C + pca_dim)
+        summary = self.input_summary(summary_input)  # (B, H)
+        soft_weights = self.gate(summary)  # (B, K)
+
+        # Run all experts (both soft and hard routing)
+        expert_outputs = []
+        for expert in self.experts:
+            if self.model_type == "quantum":
+                h = expert(x.permute(0, 2, 1))  # QTS expects (B, C, T)
+            else:
+                h = expert(x)  # Classical expects (B, T, C)
+            expert_outputs.append(h)
+
+        expert_stack = torch.stack(expert_outputs, dim=1)  # (B, K, H)
+
         if self.routing == "soft":
-            # Cluster-informed soft gating
-            cluster_onehot = F.one_hot(
-                cluster_labels, self.num_experts
-            ).float()  # (B, K)
-            summary_input = torch.cat(
-                [x.mean(dim=1), cluster_onehot], dim=-1
-            )  # (B, C+K)
-            summary = self.input_summary(summary_input)  # (B, H)
-            gate_weights = self.gate(summary)  # (B, K)
-
-            # Run all experts
-            expert_outputs = []
-            for expert in self.experts:
-                if self.model_type == "quantum":
-                    h = expert(x.permute(0, 2, 1))  # QTS expects (B, C, T)
-                else:
-                    h = expert(x)  # Classical expects (B, T, C)
-                expert_outputs.append(h)
-
-            expert_stack = torch.stack(expert_outputs, dim=1)  # (B, K, H)
+            gate_weights = soft_weights
             weighted = (
                 gate_weights.unsqueeze(-1) * expert_stack
             ).sum(dim=1)  # (B, H)
 
         elif self.routing == "hard":
-            # Deterministic routing by cluster label
-            weighted = torch.zeros(
-                B, self.expert_hidden_dim, device=x.device
-            )
-            gate_weights = F.one_hot(
-                cluster_labels, self.num_experts
+            # Straight-through estimator: forward=hard, backward=soft
+            hard_idx = soft_weights.argmax(dim=-1)  # (B,)
+            hard_weights = F.one_hot(
+                hard_idx, self.num_experts
             ).float()  # (B, K)
+            # STE: gradient flows through soft_weights
+            gate_weights = hard_weights - soft_weights.detach() + soft_weights
+            weighted = (
+                gate_weights.unsqueeze(-1) * expert_stack
+            ).sum(dim=1)  # (B, H)
 
-            for k in range(self.num_experts):
-                mask = (cluster_labels == k)
-                if mask.any():
-                    x_k = x[mask]
-                    if self.model_type == "quantum":
-                        h_k = self.experts[k](x_k.permute(0, 2, 1))
-                    else:
-                        h_k = self.experts[k](x_k)
-                    weighted[mask] = h_k
         else:
             raise ValueError(f"Unknown routing: {self.routing!r}")
 
@@ -295,12 +298,12 @@ class ClusterInformedMoE(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Train / Validate / Test (cluster-aware)
+# Train / Validate / Test
 # ---------------------------------------------------------------------------
 
-def train_cluster(model, train_loader, optimizer, criterion, device,
-                  num_classes, balance_alpha, grad_clip, routing,
-                  task_type="binary"):
+def train_epoch(model, train_loader, optimizer, criterion, device,
+                num_classes, balance_alpha, grad_clip, routing,
+                task_type="binary"):
     model.train()
     epoch_loss = 0.0
     epoch_bal_loss = 0.0
@@ -310,11 +313,11 @@ def train_cluster(model, train_loader, optimizer, criterion, device,
     expert_counts = torch.zeros(num_experts)
 
     for batch in tqdm(train_loader, desc="Training", leave=False):
-        data, target, cluster = batch[0].to(device), batch[1].to(device), batch[2].to(device)
+        data, target, pca = batch[0].to(device), batch[1].to(device), batch[2].to(device)
         data = data.permute(0, 2, 1)  # (B, C, T) -> (B, T, C)
 
         optimizer.zero_grad()
-        logits, gate_weights = model(data, cluster)
+        logits, gate_weights = model(data, pca)
 
         if task_type == "regression":
             target = target.float()
@@ -324,13 +327,9 @@ def train_cluster(model, train_loader, optimizer, criterion, device,
             target = target.float()
         task_loss = criterion(logits, target)
 
-        # Load-balancing loss (soft routing only)
-        if routing == "soft":
-            bal_loss = load_balancing_loss(gate_weights, num_experts)
-            loss = task_loss + balance_alpha * bal_loss
-        else:
-            bal_loss = torch.tensor(0.0)
-            loss = task_loss
+        # Load-balancing loss
+        bal_loss = load_balancing_loss(gate_weights, num_experts)
+        loss = task_loss + balance_alpha * bal_loss
 
         loss.backward()
         if grad_clip > 0:
@@ -389,8 +388,8 @@ def train_cluster(model, train_loader, optimizer, criterion, device,
         return avg_loss, accuracy, auc, avg_bal_loss, utilization
 
 
-def validate_cluster(model, val_loader, criterion, device, num_classes,
-                     task_type="binary"):
+def validate_epoch(model, val_loader, criterion, device, num_classes,
+                   task_type="binary"):
     model.eval()
     epoch_loss = 0.0
     all_preds = []
@@ -398,10 +397,10 @@ def validate_cluster(model, val_loader, criterion, device, num_classes,
 
     with torch.no_grad():
         for batch in tqdm(val_loader, desc="Validating", leave=False):
-            data, target, cluster = batch[0].to(device), batch[1].to(device), batch[2].to(device)
+            data, target, pca = batch[0].to(device), batch[1].to(device), batch[2].to(device)
             data = data.permute(0, 2, 1)  # (B, C, T) -> (B, T, C)
 
-            logits, _ = model(data, cluster)
+            logits, _ = model(data, pca)
 
             if task_type == "regression":
                 target = target.float()
@@ -447,8 +446,8 @@ def validate_cluster(model, val_loader, criterion, device, num_classes,
         return avg_loss, accuracy, auc
 
 
-def test_cluster(model, test_loader, criterion, device, num_classes,
-                 task_type="binary"):
+def test_epoch(model, test_loader, criterion, device, num_classes,
+               task_type="binary"):
     model.eval()
     epoch_loss = 0.0
     all_preds = []
@@ -456,10 +455,10 @@ def test_cluster(model, test_loader, criterion, device, num_classes,
 
     with torch.no_grad():
         for batch in tqdm(test_loader, desc="Testing", leave=False):
-            data, target, cluster = batch[0].to(device), batch[1].to(device), batch[2].to(device)
+            data, target, pca = batch[0].to(device), batch[1].to(device), batch[2].to(device)
             data = data.permute(0, 2, 1)  # (B, C, T) -> (B, T, C)
 
-            logits, _ = model(data, cluster)
+            logits, _ = model(data, pca)
 
             if task_type == "regression":
                 target = target.float()
@@ -511,7 +510,7 @@ def test_cluster(model, test_loader, criterion, device, num_classes,
 
 def get_args():
     parser = argparse.ArgumentParser(
-        description="Cluster-Informed MoE for ABCD Classification/Regression",
+        description="Learned Routing MoE for ABCD Classification/Regression",
     )
 
     # Task type
@@ -527,15 +526,17 @@ def get_args():
                         choices=["soft", "hard"],
                         help="Gating strategy")
 
-    # Cluster
-    parser.add_argument("--cluster-file", type=str, default=None,
-                        help="Path to cluster assignments CSV")
-    parser.add_argument("--cluster-column", type=str, default="km_cluster",
-                        help="Column name for cluster labels")
+    # PCA features
+    parser.add_argument("--pca-file", type=str, required=True,
+                        help="Path to PCA features .npy file")
+    parser.add_argument("--cluster-csv", type=str, required=True,
+                        help="Path to cluster CSV (for subjectkey mapping)")
+    parser.add_argument("--pca-components", type=int, default=64,
+                        help="Number of top PCA components to keep")
 
     # MoE architecture
     parser.add_argument("--num-experts", type=int, default=2,
-                        help="Number of experts (matches k clusters)")
+                        help="Number of experts")
     parser.add_argument("--expert-hidden-dim", type=int, default=64)
     parser.add_argument("--expert-layers", type=int, default=2,
                         help="Transformer layers per expert (classical only)")
@@ -545,7 +546,7 @@ def get_args():
     parser.add_argument("--dropout", type=float, default=0.2)
     parser.add_argument("--gating-noise-std", type=float, default=0.1)
     parser.add_argument("--balance-loss-alpha", type=float, default=0.1,
-                        help="Weight for load-balancing loss (soft only)")
+                        help="Weight for load-balancing loss")
 
     # Quantum circuit
     parser.add_argument("--n-qubits", type=int, default=8)
@@ -571,7 +572,7 @@ def get_args():
 
     # Experiment
     parser.add_argument("--seed", type=int, default=2025)
-    parser.add_argument("--job-id", type=str, default="ClusterMoE")
+    parser.add_argument("--job-id", type=str, default="LearnedMoE")
     parser.add_argument("--resume", action="store_true", default=False)
     parser.add_argument("--wandb", action="store_true", default=False)
     parser.add_argument("--base-path", type=str, default="./checkpoints")
@@ -598,7 +599,7 @@ def main():
 
     # --- Data Loading -------------------------------------------------------
     print("\n" + "=" * 80)
-    print("Loading ABCD fMRI Dataset with Cluster Labels...")
+    print("Loading ABCD fMRI Dataset with PCA Features...")
     print("=" * 80)
 
     sample_sz = args.sample_size if args.sample_size > 0 else None
@@ -608,13 +609,14 @@ def main():
         target_phenotype=args.target_phenotype,
         task_type=task_type,
         sample_size=sample_sz,
-        cluster_file=args.cluster_file,
-        cluster_column=args.cluster_column,
+        cluster_file=args.cluster_csv,
+        pca_file=args.pca_file,
+        pca_components=args.pca_components,
     )
 
     # Transpose (N, T, R) -> (N, R, T) to match (B, C, T) convention
     train_loader, val_loader, test_loader, input_dim = \
-        transpose_fmri_loaders_with_clusters(
+        transpose_fmri_loaders_with_pca(
             train_loader, val_loader, test_loader, input_dim,
             args.batch_size, device,
         )
@@ -626,16 +628,17 @@ def main():
     # --- Model --------------------------------------------------------------
     print("\n" + "=" * 80)
     config_name = f"{args.model_type.capitalize()} {args.routing.capitalize()}"
-    print(f"Initializing Cluster-Informed MoE ({config_name})...")
+    print(f"Initializing Learned Routing MoE ({config_name})...")
     print("=" * 80)
 
-    model = ClusterInformedMoE(
+    model = LearnedRoutingMoE(
         total_channels=n_channels,
         time_points=n_timesteps,
         num_experts=args.num_experts,
         expert_hidden_dim=args.expert_hidden_dim,
         model_type=args.model_type,
         routing=args.routing,
+        pca_dim=args.pca_components,
         expert_layers=args.expert_layers,
         nhead=args.nhead,
         n_qubits=args.n_qubits,
@@ -651,6 +654,7 @@ def main():
     print(f"Trainable parameters: {n_params:,}")
     print(f"Model: {args.model_type}, Routing: {args.routing}, "
           f"Experts: {args.num_experts}, Hidden: {args.expert_hidden_dim}")
+    print(f"PCA components: {args.pca_components}")
     if args.model_type == "classical":
         print(f"Classical: {args.expert_layers} layers, {args.nhead} heads")
     else:
@@ -679,14 +683,14 @@ def main():
 
     # --- Checkpoint & Logger ------------------------------------------------
     os.makedirs(args.base_path, exist_ok=True)
-    ckpt_name = f"ClusterMoE_{args.model_type}_{args.routing}_{args.job_id}.pt"
+    ckpt_name = f"LearnedMoE_{args.model_type}_{args.routing}_{args.job_id}.pt"
     checkpoint_path = os.path.join(args.base_path, ckpt_name)
     logger = TrainingLogger(save_dir=args.base_path, job_id=args.job_id)
 
     # --- Wandb --------------------------------------------------------------
     if args.wandb:
         import wandb
-        wandb.init(project="cluster-informed-moe", config=vars(args))
+        wandb.init(project="learned-routing-moe", config=vars(args))
 
     # --- Resume -------------------------------------------------------------
     start_epoch = 0
@@ -719,23 +723,23 @@ def main():
 
         if is_regression:
             train_loss, train_mse, train_rmse, train_r2, bal_loss, utilization = \
-                train_cluster(
+                train_epoch(
                     model, train_loader, optimizer, criterion, device,
                     num_classes, args.balance_loss_alpha, args.grad_clip,
                     args.routing, task_type=task_type,
                 )
-            val_loss, val_mse, val_rmse, val_r2 = validate_cluster(
+            val_loss, val_mse, val_rmse, val_r2 = validate_epoch(
                 model, val_loader, criterion, device, num_classes,
                 task_type=task_type,
             )
         else:
             train_loss, train_acc, train_auc, bal_loss, utilization = \
-                train_cluster(
+                train_epoch(
                     model, train_loader, optimizer, criterion, device,
                     num_classes, args.balance_loss_alpha, args.grad_clip,
                     args.routing, task_type=task_type,
                 )
-            val_loss, val_acc, val_auc = validate_cluster(
+            val_loss, val_acc, val_auc = validate_epoch(
                 model, val_loader, criterion, device, num_classes,
                 task_type=task_type,
             )
@@ -838,7 +842,7 @@ def main():
         model.load_state_dict(ckpt["model_state_dict"])
 
     if is_regression:
-        test_loss, test_mse, test_rmse, test_r2 = test_cluster(
+        test_loss, test_mse, test_rmse, test_r2 = test_epoch(
             model, test_loader, criterion, device, num_classes,
             task_type=task_type,
         )
@@ -850,7 +854,7 @@ def main():
         print(f"\nBest Validation Loss: {best_val_metric:.4f}")
         print(f"Final Test RMSE: {test_rmse:.4f} | R²: {test_r2:.4f}")
     else:
-        test_loss, test_acc, test_auc = test_cluster(
+        test_loss, test_acc, test_auc = test_epoch(
             model, test_loader, criterion, device, num_classes,
             task_type=task_type,
         )
@@ -863,6 +867,7 @@ def main():
 
     print(f"Trainable parameters: {n_params:,}")
     print(f"Config: {args.model_type} / {args.routing} / {task_type}")
+    print(f"PCA components: {args.pca_components}")
     print("=" * 80)
 
     if args.wandb:
