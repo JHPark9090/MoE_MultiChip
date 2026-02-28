@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes all MoE experiments on the ABCD fMRI dataset across three phenotypes (ADHD, ASD, Sex) and two routing approaches (Cluster-Informed, Learned Routing). All models use HCP180 parcellation (180 ROIs, 363 timepoints) with site-regressed coherence clustering.
+This document summarizes all MoE experiments on the ABCD fMRI dataset across four phenotypes (ADHD, ASD, Sex, Fluid Intelligence) and two routing approaches (Cluster-Informed, Learned Routing). All models use HCP180 parcellation (180 ROIs, 363 timepoints) with site-regressed coherence clustering.
 
 ---
 
@@ -15,8 +15,9 @@ This document summarizes all MoE experiments on the ABCD fMRI dataset across thr
 | ADHD | Binary classification | 4,458 | ADHD+: ~50% | 2 |
 | ASD | Binary classification | 4,992 | ASD+: ~50% | 2 |
 | Sex | Binary classification | 9,141 | F: 52.2%, M: 47.8% | 2 |
+| Fluid Intelligence | Regression | 5,345 | Continuous (z-scored) | 2 |
 
-All datasets use 70/15/15 train/val/test splits with stratification, seed=2025.
+All datasets use 70/15/15 train/val/test splits with stratification (classification) or random split (regression), seed=2025.
 
 ### Clustering
 
@@ -27,6 +28,7 @@ Site-regressed coherence features (16,110 upper-triangle features from 180 ROIs)
 | ADHD | 1,386 | 0.0475 | ~5% prevalence difference, p=0.008 |
 | ASD | 1,480 | 0.0495 | ~5% prevalence difference, p=0.002 |
 | Sex | 1,889 | 0.2850 | ~4.6% prevalence difference, p=1.9e-05 |
+| Fluid Intelligence | — | 0.2817 | Mean difference ~0.05 z-score, p=0.046 |
 
 ### Model Configurations
 
@@ -112,9 +114,41 @@ Shared hyperparameters: dropout=0.2, gating noise=0.1, balance loss alpha=0.1 (s
 
 ---
 
+### 2.4 Fluid Intelligence Regression
+
+This is a **regression** task predicting the NIH Toolbox fluid composite score (`nihtbx_fluidcomp_uncorrected`) from resting-state fMRI. Metrics are MSE, RMSE, and R² (higher is better; R²=0 means predicting the mean).
+
+#### Clustering
+
+- N subjects: 5,345 (with valid fluid intelligence scores)
+- Optimal k: 2 (silhouette=0.2817, CH=2498, DB=1.42)
+- Cluster 0 (n=3,338): mean fluid intel z ≈ +0.008
+- Cluster 1 (n=2,007): mean fluid intel z ≈ -0.046
+- Association: chi2=12.82, p=0.046 (marginally significant)
+
+#### Cluster-Informed MoE
+
+| Config | Params | Epochs | Best Val Loss | Test MSE | Test RMSE | Test R² |
+|--------|--------|--------|--------------|----------|-----------|---------|
+| Classical Soft | 283,491 | 26 | 0.9047 | 0.7715 | 0.8784 | -0.021 |
+| Classical Hard | 269,633 | 22 | 0.8979 | 0.7541 | 0.8684 | 0.002 |
+| **Quantum Soft** | 41,089 | 39 | **0.8901** | **0.7497** | **0.8658** | **0.008** |
+| Quantum Hard | 27,231 | 49 | 0.8771 | 0.7735 | 0.8795 | -0.024 |
+
+**Best Fluid Intelligence model**: Quantum Soft (Test R² **0.008**, Test RMSE **0.8658**)
+
+Both classical models achieve R² ≈ 0, indicating no predictive power beyond the population mean. Train R² reaches ~0.50 by early stopping, but validation R² remains negative throughout — a clear sign of overfitting. The models memorize training data but cannot generalize, consistent with:
+1. The weak cluster-phenotype association (marginal p=0.046)
+2. The inherent difficulty of predicting cognitive scores from resting-state fMRI alone
+3. The small effect size of connectivity-cognition relationships in the ABCD cohort
+
+---
+
 ## 3. Cross-Phenotype Comparison
 
-### Best Model per Phenotype (Cluster-Informed Classical Soft)
+### Best Model per Phenotype
+
+#### Classification (Cluster-Informed Classical Soft)
 
 | Phenotype | Val AUC | Test AUC | Test Acc | N Subjects |
 |-----------|---------|----------|----------|------------|
@@ -122,13 +156,20 @@ Shared hyperparameters: dropout=0.2, gating noise=0.1, balance loss alpha=0.1 (s
 | ADHD | 0.6379 | 0.6001 | 0.5934 | 4,458 |
 | ASD | 0.5642 | 0.5804 | 0.5541 | 4,992 |
 
-Sex classification is substantially easier than psychiatric diagnoses, consistent with known sex differences in resting-state functional connectivity.
+#### Regression (Cluster-Informed Quantum Soft)
+
+| Phenotype | Best Val Loss | Test RMSE | Test R² | N Subjects |
+|-----------|--------------|-----------|---------|------------|
+| Fluid Intelligence | 0.8901 | 0.8658 | 0.008 | 5,345 |
+
+Sex classification is substantially easier than psychiatric diagnoses, consistent with known sex differences in resting-state functional connectivity. Fluid intelligence regression yields R² ≈ 0, indicating that the MoE architecture cannot extract predictive signal for cognition from resting-state fMRI connectivity.
 
 ### Difficulty Ranking
 
 1. **Sex** (Test AUC 0.80): Strong signal in fMRI connectivity; well above chance across all configs
 2. **ADHD** (Test AUC 0.60): Moderate signal; above chance but challenging
 3. **ASD** (Test AUC 0.58): Weakest signal; near-chance for most configs
+4. **Fluid Intelligence** (Test R² 0.00): No predictive signal captured; models cannot outperform the mean
 
 ---
 
@@ -224,19 +265,21 @@ Hard routing reflects the natural cluster distribution; soft routing converges t
 
 ## 8. Key Findings
 
-1. **Cluster-Informed Classical Soft is the best MoE configuration** across all three phenotypes, achieving the highest test AUC in every case.
+1. **Cluster-Informed Classical Soft is the best MoE configuration** across all three classification phenotypes, achieving the highest test AUC in every case.
 
 2. **Sex classification is substantially easier** (0.80 AUC) than psychiatric diagnoses (ADHD 0.60, ASD 0.58), consistent with well-documented sex differences in resting-state functional connectivity.
 
-3. **Soft routing consistently outperforms hard routing** (9/10 comparisons), as the weighted expert combination is more robust than discrete selection.
+3. **Fluid intelligence regression yields R² ≈ 0** — both classical configurations fail to predict cognitive scores beyond the population mean, despite strong train-set overfitting (train R² ~0.50). This confirms that resting-state fMRI connectivity features, even with MoE routing, lack sufficient signal for individual-level cognitive prediction.
 
-4. **Cluster-Informed routing outperforms Learned Routing** on average (-2.67 pts val AUC, -0.77 pts test AUC). The simple cluster one-hot acts as a regularizing prior that the gating network cannot improve upon with 64 PCA dimensions.
+4. **Soft routing consistently outperforms hard routing** (9/10 classification comparisons), as the weighted expert combination is more robust than discrete selection.
 
-5. **Expert collapse is fully resolved** — both cluster-informed and learned routing maintain balanced expert utilization, unlike the original MoE that routed 99% of samples to a single expert.
+5. **Cluster-Informed routing outperforms Learned Routing** on average (-2.67 pts val AUC, -0.77 pts test AUC). The simple cluster one-hot acts as a regularizing prior that the gating network cannot improve upon with 64 PCA dimensions.
 
-6. **The performance bottleneck is not routing quality** — even with end-to-end learned routing from rich connectivity features, performance does not improve, suggesting the fundamental limit is the experts' ability to extract discriminative features from fMRI time series.
+6. **Expert collapse is fully resolved** — both cluster-informed and learned routing maintain balanced expert utilization, unlike the original MoE that routed 99% of samples to a single expert.
 
-7. **Quantum experts are 7x more parameter-efficient** but underperform classical by ~3-10 pts AUC on average. The quantum-classical gap is smaller for ADHD/ASD (where overall performance is near chance) and larger for sex classification (where there is more signal to capture).
+7. **The performance bottleneck is not routing quality** — even with end-to-end learned routing from rich connectivity features, performance does not improve, suggesting the fundamental limit is the experts' ability to extract discriminative features from fMRI time series.
+
+8. **Quantum experts are 7x more parameter-efficient** but underperform classical by ~3-10 pts AUC on average. The quantum-classical gap is smaller for ADHD/ASD (where overall performance is near chance) and larger for sex classification (where there is more signal to capture).
 
 ---
 
@@ -251,6 +294,7 @@ Hard routing reflects the natural cluster distribution; soft routing converges t
 | ADHD clustering results | `results/coherence_clustering_site_regressed/` |
 | ASD clustering results | `results/asd_coherence_clustering_site_regressed/` |
 | Sex clustering results | `results/sex_coherence_clustering_site_regressed/` |
+| Fluid Intelligence clustering results | `results/fluidint_coherence_clustering_site_regressed/` |
 | SLURM scripts | `scripts/` |
 | Checkpoints | `checkpoints/` |
 | Logs | `logs/` |
