@@ -89,6 +89,91 @@ def get_fc_network_pairs():
     return pairs
 
 
+# ---------------------------------------------------------------------------
+# ADHD Circuit Groupings (for neurobiology-based MoE)
+# ---------------------------------------------------------------------------
+# Based on: Nigg et al. (2020), Feng et al. (2024), Pan et al. (2026)
+
+ADHD_CIRCUITS_3 = {
+    "DMN": ["DefaultA", "DefaultB", "DefaultC", "TempPar"],
+    "Executive": ["ContA", "ContB", "ContC", "DorsAttnA", "DorsAttnB"],
+    "Salience": ["SalVentAttnA", "SalVentAttnB", "Limbic_TempPole", "Limbic_OFC"],
+    "SensoriMotor": ["VisCent", "VisPeri", "SomMotA", "SomMotB"],
+}
+
+ADHD_CIRCUITS_2 = {
+    "Internal": ["DefaultA", "DefaultB", "DefaultC", "TempPar",
+                  "Limbic_TempPole", "Limbic_OFC", "SalVentAttnA", "SalVentAttnB"],
+    "External": ["ContA", "ContB", "ContC", "DorsAttnA", "DorsAttnB",
+                  "VisCent", "VisPeri", "SomMotA", "SomMotB"],
+}
+
+
+def get_circuit_config(name):
+    """Return a circuit configuration by name.
+
+    Args:
+        name: "adhd_3" (4 experts: DMN, Executive, Salience, SensoriMotor)
+              or "adhd_2" (2 experts: Internal, External)
+
+    Returns:
+        dict: circuit_name -> list of Yeo17 network names
+    """
+    configs = {"adhd_3": ADHD_CIRCUITS_3, "adhd_2": ADHD_CIRCUITS_2}
+    if name not in configs:
+        raise ValueError(f"Unknown circuit config: {name!r}. Choose from {list(configs)}")
+    return configs[name]
+
+
+def get_circuit_roi_indices(circuit_config):
+    """Convert circuit config to ROI index lists.
+
+    Args:
+        circuit_config: dict of circuit_name -> list of Yeo17 network names
+
+    Returns:
+        list of (circuit_name, roi_indices) tuples, ordered consistently
+    """
+    result = []
+    for circuit_name, network_names in circuit_config.items():
+        roi_indices = []
+        for net_name in network_names:
+            roi_indices.extend(YEO17_HCP180[net_name])
+        roi_indices.sort()
+        result.append((circuit_name, roi_indices))
+    return result
+
+
+def get_circuit_fc_edge_indices(circuit_config, n_rois=180):
+    """Get upper-triangle FC edge indices restricted to circuit-relevant ROIs.
+
+    Returns only edges where BOTH ROIs belong to circuits in the config
+    (within-circuit + between-circuit edges).
+
+    Args:
+        circuit_config: dict of circuit_name -> list of Yeo17 network names
+        n_rois: total number of ROIs
+
+    Returns:
+        np.ndarray: 1D array of indices into the full upper-triangle vector
+    """
+    import numpy as np
+
+    # Collect all circuit ROIs
+    circuit_rois = set()
+    for network_names in circuit_config.values():
+        for net_name in network_names:
+            circuit_rois.update(YEO17_HCP180[net_name])
+
+    # Full upper triangle indices
+    triu_r, triu_c = np.triu_indices(n_rois, k=1)
+
+    # Mask: both ROIs must be in circuit ROIs
+    mask = np.array([(r in circuit_rois and c in circuit_rois)
+                     for r, c in zip(triu_r, triu_c)])
+    return np.where(mask)[0]
+
+
 def verify_coverage(n_rois=180):
     """Verify that all ROI indices 0..n_rois-1 are covered exactly once."""
     all_indices = []
@@ -114,3 +199,14 @@ if __name__ == "__main__":
         print(f"  {name:20s}: {size:3d} ROIs")
     pairs = get_fc_network_pairs()
     print(f"\nFC network pairs: {len(pairs)} (17 within + 136 between)")
+
+    # Circuit configs
+    for cfg_name in ["adhd_3", "adhd_2"]:
+        cfg = get_circuit_config(cfg_name)
+        circuits = get_circuit_roi_indices(cfg)
+        edge_idx = get_circuit_fc_edge_indices(cfg)
+        total_rois = sum(len(idx) for _, idx in circuits)
+        print(f"\n{cfg_name}: {len(circuits)} circuits, {total_rois} ROIs, "
+              f"{len(edge_idx)} FC edges (of 16110)")
+        for cname, idx in circuits:
+            print(f"  {cname:20s}: {len(idx):3d} ROIs")
