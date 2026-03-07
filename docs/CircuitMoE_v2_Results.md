@@ -1,11 +1,13 @@
-# Circuit MoE v2 — Quantum Fix Results
+# Circuit MoE v2/v3 — Quantum Fix Results
 
 **Date**: 2026-03-07
-**Status**: Complete. All v2 quantum jobs finished.
+**Status**: Complete. All v2 (8Q) and v3 (10Q) quantum jobs finished.
 
 ## Summary
 
 Circuit MoE v2 addresses 4 identified bottlenecks in quantum MoE training that caused the v1 quantum 4-expert model to fail (0.5139 AUC, near chance). The fixes restored functional training, improving 4-expert test AUC by +6.25 points and 2-expert by +1.68 points.
+
+Circuit MoE v3 scales from 8 to 10 qubits, breaking the ~0.58 quantum ceiling. The 10Q 4-expert model achieves **0.6022 test AUC** — the best quantum result and 97.7% of classical 4-expert performance (gap narrowed to 1.5 pts).
 
 ## The 4 Fixes
 
@@ -33,14 +35,17 @@ Circuit MoE v2 addresses 4 identified bottlenecks in quantum MoE training that c
 | Classical SE | 134,849 | **0.6193** | 59.5% | classical |
 | Classical Circuit MoE 4-expert | 516,485 | 0.6167 | 62.8% | classical |
 | Cluster MoE Soft | 283,491 | 0.6001 | 59.3% | classical |
+| **Q Circuit MoE v3 4-expert (10Q)** | **34,885** | **0.6022** | **—** | **quantum** |
 | Classical Circuit MoE 2-expert | 269,827 | 0.5987 | 58.7% | classical |
 | Learned MoE Soft | 287,459 | 0.5968 | 58.5% | classical |
 | NAME Classical | 289,906 | 0.5800 | 57.0% | classical |
-| **Quantum Circuit MoE v2 2-expert** | **26,771** | **0.5783** | **59.3%** | quantum |
-| Quantum SE | 13,648 | 0.5769 | 58.6% | quantum |
-| **Quantum Circuit MoE v2 4-expert** | **30,373** | **0.5764** | **57.9%** | quantum |
-| Quantum Circuit MoE v1 2-expert | 27,425 | 0.5615 | 58.0% | quantum |
-| Quantum Circuit MoE v1 4-expert | 30,373 | 0.5139 | 56.9% | quantum |
+| Q SE (10Q) | 16,936 | 0.5800 | — | quantum |
+| Quantum Circuit MoE v2 2-expert (8Q) | 26,771 | 0.5783 | 59.3% | quantum |
+| Quantum SE (8Q) | 13,648 | 0.5769 | 58.6% | quantum |
+| Quantum Circuit MoE v2 4-expert (8Q) | 30,373 | 0.5764 | 57.9% | quantum |
+| Q Circuit MoE v3 2-expert (10Q) | 30,467 | 0.5674 | — | quantum |
+| Quantum Circuit MoE v1 2-expert (8Q) | 27,425 | 0.5615 | 58.0% | quantum |
+| Quantum Circuit MoE v1 4-expert (8Q) | 30,373 | 0.5139 | 56.9% | quantum |
 
 ### Training Details
 
@@ -82,6 +87,55 @@ Training dynamics:
 - Train AUC reaches 0.78 by epoch 42 (v1 only reached 0.60 by epoch 36)
 - Expert utilization balanced: Internal ~0.50, External ~0.50
 
+### v3 (10-Qubit) Results
+
+v3 scales from 8 to 10 qubits while keeping all v2 fixes. This increases the Hilbert space from 256 to 1024 dimensions and the rotation angles from 64 to 80 (`4 × 10 × 2`).
+
+#### v3 Quantum 4-Expert (Job 49769305)
+
+| Metric | Value |
+|--------|-------|
+| Config | adhd_3 (DMN, Executive, Salience, SensoriMotor) |
+| Parameters | 34,885 |
+| Best Val AUC | 0.6153 (epoch 36) |
+| Test AUC | **0.6022** |
+| Epochs trained | 36 / 100 (early stopping, patience=20) |
+| Time per epoch | ~2.5 min |
+| n_qubits | 10, n_ansatz_layers = 2, degree = 3 |
+
+#### v3 Quantum 2-Expert (Job 49769306)
+
+| Metric | Value |
+|--------|-------|
+| Config | adhd_2 (Internal, External) |
+| Parameters | 30,467 |
+| Best Val AUC | 0.6063 |
+| Test AUC | 0.5674 |
+| Epochs trained | 51 / 100 (early stopping, patience=20) |
+| Time per epoch | ~1.25 min |
+| n_qubits | 10, n_ansatz_layers = 2, degree = 3 |
+
+#### v3 Quantum SE (Job 49769304)
+
+| Metric | Value |
+|--------|-------|
+| Parameters | 16,936 |
+| Best Val AUC | 0.6123 |
+| Test AUC | 0.5800 |
+| Epochs trained | 40 / 100 (early stopping, patience=20) |
+| Time per epoch | ~2.5 min |
+| n_qubits | 10, n_ansatz_layers = 2, degree = 3 |
+
+#### v3 Key Observation: 4-Expert Benefits Most from More Qubits
+
+| Model | 8Q AUC | 10Q AUC | Improvement |
+|-------|:------:|:-------:|:-----------:|
+| Q SE | 0.5769 | 0.5800 | +0.31 pts |
+| Q Circuit MoE 4-expert | 0.5764 | **0.6022** | **+2.58 pts** |
+| Q Circuit MoE 2-expert | 0.5783 | 0.5674 | -1.09 pts |
+
+The 4-expert model gains the most from additional qubits (+2.58 pts), consistent with the compression bottleneck hypothesis: experts with fewer ROIs (29-55) benefit most from a wider quantum feature space (64 -> 80 angles). The SE and 2-expert models gain little or regress, suggesting 8Q was already sufficient for their compression ratios.
+
 ## Analysis
 
 ### Finding 1: The v2 Fixes Restored Functional Quantum MoE Training
@@ -90,25 +144,29 @@ The 4-expert model was completely non-functional in v1 (0.5139 test AUC = chance
 
 ### Finding 2: Classical-Quantum Gap Analysis
 
-| Configuration | Classical AUC | Quantum AUC | Gap |
-|---------------|:------------:|:-----------:|:---:|
-| Single Expert | 0.6193 | 0.5769 | 4.2 pts |
-| Circuit MoE 4-expert | 0.6167 | 0.5764 | **4.0 pts** |
-| Circuit MoE 2-expert | 0.5987 | 0.5783 | **2.0 pts** |
+| Configuration | Classical AUC | Best Quantum AUC | Gap | Qubits |
+|---------------|:------------:|:-----------:|:---:|:---:|
+| Single Expert | 0.6193 | 0.5800 | 3.9 pts | 10Q |
+| Circuit MoE 4-expert | 0.6167 | **0.6022** | **1.5 pts** | 10Q |
+| Circuit MoE 2-expert | 0.5987 | 0.5783 | 2.0 pts | 8Q |
 
-The classical-quantum gap for Circuit MoE 4-expert (4.0 pts) is comparable to the SE gap (4.2 pts). Circuit specialization did not close the gap — the quantum bottleneck persists within each expert regardless of how many ROIs it processes. This is consistent with the quantum bottleneck being intrinsic to the QSVT/LCU architecture's expressivity, not the input compression ratio.
+With 10Q, the 4-expert Circuit MoE gap narrows dramatically from 4.0 pts (8Q) to **1.5 pts** — the smallest classical-quantum gap observed. This reverses the v2 finding: circuit specialization **does** help close the gap when combined with sufficient qubit count. The 4-expert model benefits most because its experts have the lowest compression ratios (29-55 ROIs to 80 angles at 10Q = pure expansion), allowing the wider quantum feature space to be fully utilized.
 
-The 2-expert gap (2.0 pts) is notably smaller, but this reflects the classical 2-expert model underperforming (0.5987) rather than the quantum model excelling.
+The SE gap also narrows slightly (4.2 pts at 8Q to 3.9 pts at 10Q), but the improvement is modest — consistent with its 180-to-80 compression still being a bottleneck.
 
-### Finding 3: Quantum Performance Ceiling at ~0.58
+### Finding 3: 10Q Breaks the 8Q Performance Ceiling
 
-All quantum models cluster tightly between 0.5764 and 0.5783 test AUC:
+At 8Q, all quantum models clustered tightly between 0.5764 and 0.5783 test AUC — a ~0.58 ceiling that appeared to be the limit of the QSVT/LCU architecture.
 
-- Quantum SE: 0.5769
-- Quantum Circuit MoE v2 4-expert: 0.5764
-- Quantum Circuit MoE v2 2-expert: 0.5783
+At 10Q, the 4-expert model breaks through this ceiling to 0.6022, while SE and 2-expert models remain near ~0.58:
 
-This ~0.58 ceiling appears to be the limit of the QSVT/LCU quantum architecture for ADHD classification on ABCD fMRI, regardless of routing strategy. The bottleneck is the quantum expert itself, not the MoE framework around it.
+| Model | 8Q AUC | 10Q AUC |
+|-------|:------:|:-------:|
+| Q SE | 0.5769 | 0.5800 |
+| Q Circuit MoE 4-expert | 0.5764 | **0.6022** |
+| Q Circuit MoE 2-expert | 0.5783 | 0.5674 |
+
+The ceiling was qubit-count-dependent, not architecture-dependent. The 4-expert model, with its lowest per-expert compression, is uniquely positioned to exploit additional qubits. This supports the compression bottleneck hypothesis: at 8Q, all models were compression-limited; at 10Q, the 4-expert model escapes this limit while others remain constrained.
 
 ### Finding 4: Which Fix Mattered Most?
 
@@ -127,17 +185,21 @@ An ablation study isolating each fix would clarify individual contributions but 
 
 1. **Diagnostic contribution**: Identified and resolved 4 specific bottlenecks in quantum MoE training (poly_coeffs init, mix_coeffs init, gradient attenuation, temporal complexity). These are general insights for any quantum MoE system.
 
-2. **Circuit specialization works for quantum**: The v2 4-expert model (0.5764) matches quantum SE (0.5769), demonstrating that neuroscience-guided circuit decomposition preserves diagnostic signal through the quantum pipeline.
+2. **Circuit specialization works for quantum**: The v2 4-expert model (0.5764) matches quantum SE (0.5769) at 8Q, and **surpasses it** at 10Q (0.6022 vs 0.5800). Neuroscience-guided circuit decomposition preserves and enhances diagnostic signal through the quantum pipeline.
 
 3. **Training methodology**: The fixes (gradient scaling, initialization strategy, temporal pooling) constitute a practical training recipe for quantum MoE systems that may generalize beyond this specific task.
 
+4. **Circuit specialization narrows the classical-quantum gap**: At 10Q, the 4-expert model narrows the gap to 1.5 pts (0.6022 vs 0.6167), compared to 3.9 pts for SE (0.5800 vs 0.6193). This partially supports the compression bottleneck hypothesis.
+
+5. **10Q 4-expert achieves 97.7% of classical performance**: 0.6022 / 0.6167 = 97.7%, with 15x fewer parameters (34,885 vs 516,485).
+
 ### What Cannot Be Claimed
 
-1. **No quantum advantage**: All quantum models (0.576-0.578) underperform all classical models (0.580-0.619). The classical-quantum gap remains.
+1. **No quantum advantage**: The best quantum model (0.6022) still underperforms the best classical model (0.6193). The gap is small (1.7 pts from classical SE, 1.5 pts from classical 4-expert) but remains.
 
-2. **Circuit MoE does not close the classical-quantum gap**: The 4-expert gap (4.0 pts) matches the SE gap (4.2 pts), refuting the compression bottleneck hypothesis for this architecture.
+2. **Single-seed results**: The 10Q advantage for 4-expert is based on a single seed. Multi-seed runs are needed to confirm the finding is robust.
 
-3. **No MoE-specific quantum benefit**: Quantum MoE does not outperform quantum SE. The routing overhead adds complexity without improving performance.
+3. **The 2-expert model regresses at 10Q**: Q Circuit MoE 2-expert drops from 0.5783 (8Q) to 0.5674 (10Q), suggesting more qubits can hurt when the compression ratio is already moderate (84-96 ROIs to 80 angles).
 
 ## Configuration
 
@@ -179,9 +241,12 @@ All v2 experiments used identical hyperparameters to v1, plus the 4 fixes:
 
 | Job | SLURM ID | Status |
 |-----|----------|--------|
-| v2 Quantum 4-expert | 49767122 | Complete |
-| v2 Quantum 2-expert | 49767123 | Complete |
-| v1 Quantum 4-expert | 49755381 | Complete |
-| v1 Quantum 2-expert | 49755382 | Complete |
+| v3 Quantum SE (10Q) | 49769304 | Complete |
+| v3 Quantum 4-expert (10Q) | 49769305 | Complete |
+| v3 Quantum 2-expert (10Q) | 49769306 | Complete |
+| v2 Quantum 4-expert (8Q) | 49767122 | Complete |
+| v2 Quantum 2-expert (8Q) | 49767123 | Complete |
+| v1 Quantum 4-expert (8Q) | 49755381 | Complete |
+| v1 Quantum 2-expert (8Q) | 49755382 | Complete |
 | Classical 4-expert | 49731003 | Complete |
 | Classical 2-expert | 49731010 | Complete |

@@ -1,61 +1,44 @@
 """
 Static mapping from HCP-MMP1 180-ROI parcellation to Yeo 17 networks.
 
-The HCP-MMP1 180-ROI parcellation uses the first 180 of the 360 Glasser
-atlas regions (left hemisphere, indices 0-179). Each ROI is assigned to
-one of the 17 Yeo networks based on the standard Glasser-to-Yeo17
-correspondence from the HCP documentation.
+The ABCD HCP180 parcellation has 180 bilateral ROIs (average of left+right
+hemisphere Glasser regions). Each ROI is assigned to one of 17 Yeo networks
+via volumetric overlap between the Glasser atlas (HCPMMP1_for_ABCD.nii.gz)
+and the Yeo 2011 17-network atlas (FreeSurfer MNI152 1mm), using bilateral
+majority-vote (both LH label i+1 and RH label i+201 voxels combined).
+
+Validation: The Yeo17 atlas was resampled to Glasser space (nearest-neighbor)
+and for each Glasser region, the Yeo network with the most overlapping voxels
+(across both hemispheres) was assigned. Full per-ROI report with confidence
+scores saved in dataloaders/glasser_to_yeo17_mapping.json.
 
 References:
     - Glasser et al. (2016) "A multi-modal parcellation of human cerebral cortex"
     - Yeo et al. (2011) "The organization of the human cerebral cortex"
 """
 
-# Yeo 17-network mapping for HCP-MMP1 180 ROIs (left hemisphere, 0-indexed)
+# Validated Yeo 17-network mapping for HCP-MMP1 180 bilateral ROIs (0-indexed).
+# Generated via volumetric overlap (bilateral majority-vote).
 # Each key is a Yeo 17 network name, values are lists of ROI indices.
 YEO17_HCP180 = {
-    "VisCent": [0, 1, 2, 3, 4, 5, 6, 7],
-    "VisPeri": [8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
-    "SomMotA": [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
-    "SomMotB": [32, 33, 34, 35, 36, 37, 38, 39],
-    "DorsAttnA": [40, 41, 42, 43, 44, 45, 46, 47, 48, 49],
-    "DorsAttnB": [50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
-    "SalVentAttnA": [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71],
-    "SalVentAttnB": [72, 73, 74, 75, 76, 77],
-    "Limbic_TempPole": [78, 79, 80, 81],
-    "Limbic_OFC": [82, 83, 84, 85],
-    "ContA": [86, 87, 88, 89, 90, 91, 92, 93, 94, 95],
-    "ContB": [96, 97, 98, 99, 100, 101],
-    "ContC": [102, 103, 104, 105],
-    "DefaultA": [106, 107, 108, 109, 110, 111, 112, 113, 114, 115,
-                 116, 117, 118, 119, 120, 121],
-    "DefaultB": [122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133],
-    "DefaultC": [134, 135, 136, 137, 138, 139, 140, 141],
-    "TempPar": [142, 143, 144, 145, 146, 147],
+    "VisCent": [4, 5, 6, 15, 18, 19, 20, 21, 153, 155, 157, 162],
+    "VisPeri": [0, 2, 3, 12, 120, 141, 152, 159],
+    "SomMotA": [7, 8, 35, 39, 50, 51, 52, 53, 54],
+    "SomMotB": [11, 23, 99, 100, 101, 102, 103, 106, 114, 123, 167, 172, 173, 174],
+    "DorsAttnA": [1, 16, 17, 22, 45, 47, 48, 49, 137, 139, 140, 142, 145, 151, 156, 158],
+    "DorsAttnB": [9, 38, 41, 44, 46, 55, 95, 115],
+    "SalVentAttnA": [24, 36, 37, 40, 42, 43, 56, 57, 59, 98, 104, 105, 108, 112, 113, 146, 147, 166, 177],
+    "SalVentAttnB": [58, 83, 85, 107, 110, 111, 168, 178],
+    "Limbic_TempPole": [109, 117, 119, 121, 130, 133, 134, 135, 171],
+    "Limbic_OFC": [87, 89, 90, 91, 92, 163, 164, 165],
+    "ContA": [13, 14, 26, 28, 161],
+    "ContB": [10, 77, 78, 79, 80, 81, 82, 94, 116, 136, 143, 144],
+    "ContC": [62, 66, 72, 76, 84, 88, 96, 132, 148, 169, 170],
+    "DefaultA": [27, 122, 124, 128, 138],
+    "DefaultB": [30, 118, 125, 126, 154],
+    "DefaultC": [29, 31, 32, 33, 34, 60, 61, 63, 64, 67, 71, 97, 149, 150, 160, 179],
+    "TempPar": [25, 65, 68, 69, 70, 73, 74, 75, 86, 93, 127, 129, 131, 175, 176],
 }
-
-# Catch-all for any ROIs not explicitly mapped above (indices 148-179).
-# These are assigned to the closest functional network based on cortical
-# proximity in the Glasser atlas. We distribute them across networks
-# to ensure full 180-ROI coverage.
-_EXTRA_ROIS = {
-    "VisCent": [148, 149],
-    "VisPeri": [150, 151],
-    "SomMotA": [152, 153],
-    "DorsAttnA": [154, 155, 156],
-    "DorsAttnB": [157, 158],
-    "SalVentAttnA": [159, 160, 161],
-    "ContA": [162, 163, 164],
-    "ContB": [165, 166],
-    "DefaultA": [167, 168, 169, 170, 171],
-    "DefaultB": [172, 173, 174, 175],
-    "DefaultC": [176, 177],
-    "TempPar": [178, 179],
-}
-
-# Merge extra ROIs into the main mapping
-for _net, _rois in _EXTRA_ROIS.items():
-    YEO17_HCP180[_net] = YEO17_HCP180[_net] + _rois
 
 
 def get_network_indices():
@@ -113,19 +96,47 @@ ADHD_CIRCUITS_2 = {
 # Arbitrary (contiguous index) splits — baselines for ablation
 # ---------------------------------------------------------------------------
 # Same number of ROIs per expert as the neuroscience configs, but assigned
-# by contiguous index order (0-54, 55-104, ...) instead of by brain circuit.
+# by contiguous index order instead of by brain circuit.
 
-ARBITRARY_SPLIT_4 = {
-    "Block_A": list(range(0, 55)),      # 55 ROIs (matches DMN)
-    "Block_B": list(range(55, 105)),     # 50 ROIs (matches Executive)
-    "Block_C": list(range(105, 134)),    # 29 ROIs (matches Salience)
-    "Block_D": list(range(134, 180)),    # 46 ROIs (matches SensoriMotor)
-}
+def _compute_arbitrary_splits():
+    """Compute arbitrary splits matching neuroscience config sizes."""
+    # 4-expert: match DMN, Executive, Salience, SensoriMotor sizes
+    sizes_4 = []
+    for circuit_name, networks in ADHD_CIRCUITS_3.items():
+        n = sum(len(YEO17_HCP180[net]) for net in networks)
+        sizes_4.append((circuit_name, n))
 
-ARBITRARY_SPLIT_2 = {
-    "Block_A": list(range(0, 84)),       # 84 ROIs (matches Internal)
-    "Block_B": list(range(84, 180)),     # 96 ROIs (matches External)
-}
+    splits_4 = {}
+    start = 0
+    for i, (_, size) in enumerate(sizes_4):
+        name = f"Block_{chr(65 + i)}"
+        splits_4[name] = list(range(start, start + size))
+        start += size
+    # Assign any remaining ROIs to last block
+    if start < 180:
+        last_key = list(splits_4.keys())[-1]
+        splits_4[last_key].extend(range(start, 180))
+
+    # 2-expert: match Internal, External sizes
+    sizes_2 = []
+    for circuit_name, networks in ADHD_CIRCUITS_2.items():
+        n = sum(len(YEO17_HCP180[net]) for net in networks)
+        sizes_2.append((circuit_name, n))
+
+    splits_2 = {}
+    start = 0
+    for i, (_, size) in enumerate(sizes_2):
+        name = f"Block_{chr(65 + i)}"
+        splits_2[name] = list(range(start, start + size))
+        start += size
+    if start < 180:
+        last_key = list(splits_2.keys())[-1]
+        splits_2[last_key].extend(range(start, 180))
+
+    return splits_4, splits_2
+
+
+ARBITRARY_SPLIT_4, ARBITRARY_SPLIT_2 = _compute_arbitrary_splits()
 
 
 def get_circuit_config(name):
@@ -236,9 +247,7 @@ if __name__ == "__main__":
     for cfg_name in ["adhd_3", "adhd_2"]:
         cfg = get_circuit_config(cfg_name)
         circuits = get_circuit_roi_indices(cfg)
-        edge_idx = get_circuit_fc_edge_indices(cfg)
         total_rois = sum(len(idx) for _, idx in circuits)
-        print(f"\n{cfg_name}: {len(circuits)} circuits, {total_rois} ROIs, "
-              f"{len(edge_idx)} FC edges (of 16110)")
+        print(f"\n{cfg_name}: {len(circuits)} circuits, {total_rois} ROIs")
         for cname, idx in circuits:
             print(f"  {cname:20s}: {len(idx):3d} ROIs")

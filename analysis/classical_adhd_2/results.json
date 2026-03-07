@@ -1,0 +1,1541 @@
+{
+  "model_type": "classical",
+  "circuit_config": "adhd_2",
+  "checkpoint": "checkpoints/CircuitMoE_classical_adhd_2_49731010.pt",
+  "gate_weight_stats": {
+    "Internal": {
+      "adhd_pos_mean": 0.5059127807617188,
+      "adhd_neg_mean": 0.5033942461013794,
+      "adhd_pos_std": 0.024684110656380653,
+      "adhd_neg_std": 0.021443674340844154,
+      "diff": 0.0025185346603393555,
+      "t_stat": 1.379507173459726,
+      "p_value": 0.16828125519112802
+    },
+    "External": {
+      "adhd_pos_mean": 0.49408721923828125,
+      "adhd_neg_mean": 0.496605783700943,
+      "adhd_pos_std": 0.024684110656380653,
+      "adhd_neg_std": 0.021443672478199005,
+      "diff": -0.002518564462661743,
+      "t_stat": -1.3795234871710875,
+      "p_value": 0.1682762315585563
+    }
+  },
+  "circuit_saliency": {
+    "Internal": {
+      "all_mean": 0.0007392027182504535,
+      "adhd_pos_mean": 0.0007306569023057818,
+      "adhd_neg_mean": 0.0007456625462509692,
+      "diff": -1.500564394518733e-05,
+      "signed_all": 4.976805576006882e-05,
+      "signed_pos": 4.270105273462832e-05,
+      "signed_neg": 5.511004928848706e-05,
+      "n_rois": 84
+    },
+    "External": {
+      "all_mean": 0.0005322920624166727,
+      "adhd_pos_mean": 0.0005061417468823493,
+      "adhd_neg_mean": 0.0005520593258552253,
+      "diff": -4.591757897287607e-05,
+      "signed_all": 2.5387575078639202e-05,
+      "signed_pos": 2.2618905859417282e-05,
+      "signed_neg": 2.7480438802740537e-05,
+      "n_rois": 96
+    }
+  },
+  "network_saliency": {
+    "VisCent": {
+      "all_mean": 0.0006167310639284551,
+      "adhd_pos_mean": 0.0005783798405900598,
+      "adhd_neg_mean": 0.0006457209237851202,
+      "diff": -6.734108319506049e-05,
+      "signed_all": 0.0003693789185490459,
+      "signed_pos": 0.00034795733517967165,
+      "signed_neg": 0.0003855715331155807,
+      "n_rois": 10
+    },
+    "VisPeri": {
+      "all_mean": 0.0005639335722662508,
+      "adhd_pos_mean": 0.0005356956971809268,
+      "adhd_neg_mean": 0.0005852787289768457,
+      "diff": -4.958303179591894e-05,
+      "signed_all": -0.0002324769156984985,
+      "signed_pos": -0.00023037567734718323,
+      "signed_neg": -0.0002340651844860986,
+      "n_rois": 12
+    },
+    "SomMotA": {
+      "all_mean": 0.0005624482873827219,
+      "adhd_pos_mean": 0.0005258531309664249,
+      "adhd_neg_mean": 0.0005901107215322554,
+      "diff": -6.425759056583047e-05,
+      "signed_all": 3.0412689739023335e-05,
+      "signed_pos": 2.0048248188686557e-05,
+      "signed_neg": 3.824718442047015e-05,
+      "n_rois": 16
+    },
+    "SomMotB": {
+      "all_mean": 0.0005294281290844083,
+      "adhd_pos_mean": 0.0005119896959513426,
+      "adhd_neg_mean": 0.0005426100688055158,
+      "diff": -3.0620372854173183e-05,
+      "signed_all": 0.00022121271467767656,
+      "signed_pos": 0.0002266143128508702,
+      "signed_neg": 0.00021712962188757956,
+      "n_rois": 8
+    },
+    "DorsAttnA": {
+      "all_mean": 0.0004678805998992175,
+      "adhd_pos_mean": 0.0004432988935150206,
+      "adhd_neg_mean": 0.0004864620859734714,
+      "diff": -4.3163192458450794e-05,
+      "signed_all": -4.685373278334737e-05,
+      "signed_pos": -4.503488162299618e-05,
+      "signed_neg": -4.8228677769657224e-05,
+      "n_rois": 13
+    },
+    "DorsAttnB": {
+      "all_mean": 0.000504981551785022,
+      "adhd_pos_mean": 0.0004780959279742092,
+      "adhd_neg_mean": 0.0005253046401776373,
+      "diff": -4.720871220342815e-05,
+      "signed_all": -0.00010201459372183308,
+      "signed_pos": -7.215810910565779e-05,
+      "signed_neg": -0.00012458318087738007,
+      "n_rois": 12
+    },
+    "SalVentAttnA": {
+      "all_mean": 0.0007229116163216531,
+      "adhd_pos_mean": 0.0007159128435887396,
+      "adhd_neg_mean": 0.0007282020524144173,
+      "diff": -1.2289208825677633e-05,
+      "signed_all": -3.188726623193361e-05,
+      "signed_pos": -4.1330171370645985e-05,
+      "signed_neg": -2.47493117058184e-05,
+      "n_rois": 15
+    },
+    "SalVentAttnB": {
+      "all_mean": 0.000908134737983346,
+      "adhd_pos_mean": 0.0008966312743723392,
+      "adhd_neg_mean": 0.0009168302640318871,
+      "diff": -2.0198989659547806e-05,
+      "signed_all": -9.525316272629425e-05,
+      "signed_pos": -9.89292748272419e-05,
+      "signed_neg": -9.247431444237009e-05,
+      "n_rois": 6
+    },
+    "Limbic_TempPole": {
+      "all_mean": 0.00072024593828246,
+      "adhd_pos_mean": 0.0007133297622203827,
+      "adhd_neg_mean": 0.0007254742668010294,
+      "diff": -1.2144504580646753e-05,
+      "signed_all": 5.68959912925493e-05,
+      "signed_pos": 4.437660754774697e-05,
+      "signed_neg": 6.635933823417872e-05,
+      "n_rois": 4
+    },
+    "Limbic_OFC": {
+      "all_mean": 0.0008808356942608953,
+      "adhd_pos_mean": 0.000867541239131242,
+      "adhd_neg_mean": 0.0008908851305022836,
+      "diff": -2.3343891371041536e-05,
+      "signed_all": 0.0002174150140490383,
+      "signed_pos": 0.00019307536422275007,
+      "signed_neg": 0.00023581349523738027,
+      "n_rois": 4
+    },
+    "ContA": {
+      "all_mean": 0.0005330048152245581,
+      "adhd_pos_mean": 0.0005124396993778646,
+      "adhd_neg_mean": 0.0005485500441864133,
+      "diff": -3.611034480854869e-05,
+      "signed_all": -1.8715894839260727e-05,
+      "signed_pos": -2.8053222195012495e-05,
+      "signed_neg": -1.1657704817480408e-05,
+      "n_rois": 13
+    },
+    "ContB": {
+      "all_mean": 0.0005141879664734006,
+      "adhd_pos_mean": 0.0005078387912362814,
+      "adhd_neg_mean": 0.0005189873045310378,
+      "diff": -1.1148513294756413e-05,
+      "signed_all": -7.47458943806123e-06,
+      "signed_pos": -2.0184979803161696e-05,
+      "signed_neg": 2.1333416952984408e-06,
+      "n_rois": 8
+    },
+    "ContC": {
+      "all_mean": 0.0004365345521364361,
+      "adhd_pos_mean": 0.0004108576395083219,
+      "adhd_neg_mean": 0.0004559441586025059,
+      "diff": -4.508651909418404e-05,
+      "signed_all": 0.0003533034469000995,
+      "signed_pos": 0.0003250465961173177,
+      "signed_neg": 0.0003746628644876182,
+      "n_rois": 4
+    },
+    "DefaultA": {
+      "all_mean": 0.0007086449186317623,
+      "adhd_pos_mean": 0.0007009812397882342,
+      "adhd_neg_mean": 0.0007144379196688533,
+      "diff": -1.3456679880619049e-05,
+      "signed_all": 2.602297354314942e-05,
+      "signed_pos": 2.4397068045800552e-05,
+      "signed_neg": 2.725199010455981e-05,
+      "n_rois": 21
+    },
+    "DefaultB": {
+      "all_mean": 0.0006353421485982835,
+      "adhd_pos_mean": 0.0006279376102611423,
+      "adhd_neg_mean": 0.0006409392808564007,
+      "diff": -1.3001670595258474e-05,
+      "signed_all": 0.0001215295706060715,
+      "signed_pos": 0.00011726799129974097,
+      "signed_neg": 0.00012475090625230223,
+      "n_rois": 16
+    },
+    "DefaultC": {
+      "all_mean": 0.0009258187492378056,
+      "adhd_pos_mean": 0.0009135113214142621,
+      "adhd_neg_mean": 0.0009351217886433005,
+      "diff": -2.1610467229038477e-05,
+      "signed_all": 0.00014727006782777607,
+      "signed_pos": 0.00013789987133350223,
+      "signed_neg": 0.0001543530379422009,
+      "n_rois": 10
+    },
+    "TempPar": {
+      "all_mean": 0.0006363766151480377,
+      "adhd_pos_mean": 0.0006288120639510453,
+      "adhd_neg_mean": 0.0006420948775485158,
+      "diff": -1.3282813597470522e-05,
+      "signed_all": 2.1180581825319678e-05,
+      "signed_pos": 1.0372945325798355e-05,
+      "signed_neg": 2.9350179829634726e-05,
+      "n_rois": 8
+    }
+  },
+  "roi_saliency_top50": [
+    {
+      "roi_idx": 73,
+      "network": "SalVentAttnB",
+      "circuit": "Internal",
+      "saliency_all": 0.002147563500329852,
+      "saliency_pos": 0.00210724794305861,
+      "saliency_neg": 0.0021780389361083508,
+      "diff": -7.079099304974079e-05,
+      "signed_all": -0.0005530344787985086,
+      "signed_pos": -0.0005314575973898172,
+      "signed_neg": -0.0005693439743481576
+    },
+    {
+      "roi_idx": 171,
+      "network": "DefaultA",
+      "circuit": "Internal",
+      "saliency_all": 0.0019574251491576433,
+      "saliency_pos": 0.0019307223847135901,
+      "saliency_neg": 0.001977610867470503,
+      "diff": -4.688848275691271e-05,
+      "signed_all": 0.0006646921392530203,
+      "signed_pos": 0.0006624085363000631,
+      "signed_neg": 0.0006664186366833746
+    },
+    {
+      "roi_idx": 134,
+      "network": "DefaultC",
+      "circuit": "Internal",
+      "saliency_all": 0.001699667191132903,
+      "saliency_pos": 0.0016687815077602863,
+      "saliency_neg": 0.001723012886941433,
+      "diff": -5.423137918114662e-05,
+      "signed_all": 0.0005380413495004177,
+      "signed_pos": 0.0005072968197055161,
+      "signed_neg": 0.0005612816894426942
+    },
+    {
+      "roi_idx": 80,
+      "network": "Limbic_TempPole",
+      "circuit": "Internal",
+      "saliency_all": 0.001470137038268149,
+      "saliency_pos": 0.0014571535866707563,
+      "saliency_neg": 0.0014799522468820214,
+      "diff": -2.2798660211265087e-05,
+      "signed_all": 7.561464735772461e-05,
+      "signed_pos": 4.219793117954396e-05,
+      "signed_neg": 0.00010087458213092759
+    },
+    {
+      "roi_idx": 168,
+      "network": "DefaultA",
+      "circuit": "Internal",
+      "saliency_all": 0.0013081817887723446,
+      "saliency_pos": 0.0012920188019052148,
+      "saliency_neg": 0.0013203994603827596,
+      "diff": -2.8380658477544785e-05,
+      "signed_all": -0.00021974655101075768,
+      "signed_pos": -0.00020602767472155392,
+      "signed_neg": -0.00023011694429442286
+    },
+    {
+      "roi_idx": 141,
+      "network": "DefaultC",
+      "circuit": "Internal",
+      "saliency_all": 0.0012575743021443486,
+      "saliency_pos": 0.001242091995663941,
+      "saliency_neg": 0.0012692774180322886,
+      "diff": -2.7185422368347645e-05,
+      "signed_all": -5.13309714733623e-05,
+      "signed_pos": -5.7353521697223186e-05,
+      "signed_neg": -4.677850301959552e-05
+    },
+    {
+      "roi_idx": 138,
+      "network": "DefaultC",
+      "circuit": "Internal",
+      "saliency_all": 0.0012342213885858655,
+      "saliency_pos": 0.0012212885776534677,
+      "saliency_neg": 0.0012439977144822478,
+      "diff": -2.2709136828780174e-05,
+      "signed_all": 0.0002505884040147066,
+      "signed_pos": 0.0002543400041759014,
+      "signed_neg": 0.00024775296333245933
+    },
+    {
+      "roi_idx": 169,
+      "network": "DefaultA",
+      "circuit": "Internal",
+      "saliency_all": 0.0012303879484534264,
+      "saliency_pos": 0.001212017610669136,
+      "saliency_neg": 0.001244274666532874,
+      "diff": -3.225705586373806e-05,
+      "signed_all": -0.00040045499918051064,
+      "signed_pos": -0.0003860118449665606,
+      "signed_neg": -0.0004113728064112365
+    },
+    {
+      "roi_idx": 25,
+      "network": "SomMotA",
+      "circuit": "External",
+      "saliency_all": 0.0012108591618016362,
+      "saliency_pos": 0.0011346782557666302,
+      "saliency_neg": 0.0012684431858360767,
+      "diff": -0.00013376493006944656,
+      "signed_all": -0.0011366500984877348,
+      "signed_pos": -0.0010654611978679895,
+      "signed_neg": -0.0011904618004336953
+    },
+    {
+      "roi_idx": 83,
+      "network": "Limbic_OFC",
+      "circuit": "Internal",
+      "saliency_all": 0.0011765779927372932,
+      "saliency_pos": 0.001158891012892127,
+      "saliency_neg": 0.0011899481760337949,
+      "diff": -3.105716314166784e-05,
+      "signed_all": 0.0001826894877012819,
+      "signed_pos": 0.00014995606034062803,
+      "signed_neg": 0.00020743298227898777
+    },
+    {
+      "roi_idx": 82,
+      "network": "Limbic_OFC",
+      "circuit": "Internal",
+      "saliency_all": 0.0011476502986624837,
+      "saliency_pos": 0.0011291669216006994,
+      "saliency_neg": 0.001161622698418796,
+      "diff": -3.245577681809664e-05,
+      "signed_all": 0.00032088940497487783,
+      "signed_pos": 0.0002887870359700173,
+      "signed_neg": 0.0003451558295637369
+    },
+    {
+      "roi_idx": 68,
+      "network": "SalVentAttnA",
+      "circuit": "Internal",
+      "saliency_all": 0.00110478640999645,
+      "saliency_pos": 0.0010964462999254465,
+      "saliency_neg": 0.001111091230995953,
+      "diff": -1.4644931070506573e-05,
+      "signed_all": 0.0001908274134621024,
+      "signed_pos": 0.00015909339708741754,
+      "signed_neg": 0.0002148154890164733
+    },
+    {
+      "roi_idx": 137,
+      "network": "DefaultC",
+      "circuit": "Internal",
+      "saliency_all": 0.0010729216737672687,
+      "saliency_pos": 0.001059451256878674,
+      "saliency_neg": 0.001083104289136827,
+      "diff": -2.3653032258152962e-05,
+      "signed_all": -9.645189857110381e-05,
+      "signed_pos": -9.090286039281636e-05,
+      "signed_neg": -0.00010064642992801964
+    },
+    {
+      "roi_idx": 3,
+      "network": "VisCent",
+      "circuit": "External",
+      "saliency_all": 0.0010666778543964028,
+      "saliency_pos": 0.0010059982305392623,
+      "saliency_neg": 0.0011125451419502497,
+      "diff": -0.00010654691141098738,
+      "signed_all": 0.0010065913666039705,
+      "signed_pos": 0.000950144836679101,
+      "signed_neg": 0.0010492587462067604
+    },
+    {
+      "roi_idx": 8,
+      "network": "VisPeri",
+      "circuit": "External",
+      "saliency_all": 0.0010623637354001403,
+      "saliency_pos": 0.001008330611512065,
+      "saliency_neg": 0.0011032086331397295,
+      "diff": -9.487802162766457e-05,
+      "signed_all": -0.0008825649274513125,
+      "signed_pos": -0.0008442498510703444,
+      "signed_neg": -0.0009115264983847737
+    },
+    {
+      "roi_idx": 71,
+      "network": "SalVentAttnA",
+      "circuit": "Internal",
+      "saliency_all": 0.0010620711836963892,
+      "saliency_pos": 0.001051307306624949,
+      "saliency_neg": 0.0010702097788453102,
+      "diff": -1.8902472220361233e-05,
+      "signed_all": 0.00019968308333773166,
+      "signed_pos": 0.00019426600192673504,
+      "signed_neg": 0.0002037780941464007
+    },
+    {
+      "roi_idx": 92,
+      "network": "ContA",
+      "circuit": "External",
+      "saliency_all": 0.001060193288139999,
+      "saliency_pos": 0.001052345149219036,
+      "saliency_neg": 0.001066126162186265,
+      "diff": -1.378101296722889e-05,
+      "signed_all": -0.0008155203540809453,
+      "signed_pos": -0.0008338721818290651,
+      "signed_neg": -0.000801648071501404
+    },
+    {
+      "roi_idx": 10,
+      "network": "VisPeri",
+      "circuit": "External",
+      "saliency_all": 0.0010542388772591949,
+      "saliency_pos": 0.0010239213006570935,
+      "saliency_neg": 0.001077155233360827,
+      "diff": -5.3233932703733444e-05,
+      "signed_all": -0.0009118911111727357,
+      "signed_pos": -0.0008872558828443289,
+      "signed_neg": -0.0009305126732215285
+    },
+    {
+      "roi_idx": 117,
+      "network": "DefaultA",
+      "circuit": "Internal",
+      "saliency_all": 0.0010526054538786411,
+      "saliency_pos": 0.0010283966548740864,
+      "saliency_neg": 0.0010709050111472607,
+      "diff": -4.2508356273174286e-05,
+      "signed_all": -0.00040674384217709303,
+      "signed_pos": -0.0003883480385411531,
+      "signed_neg": -0.0004206495068501681
+    },
+    {
+      "roi_idx": 130,
+      "network": "DefaultB",
+      "circuit": "Internal",
+      "saliency_all": 0.001033472246490419,
+      "saliency_pos": 0.0010156132047995925,
+      "saliency_neg": 0.0010469711851328611,
+      "diff": -3.135798033326864e-05,
+      "signed_all": 0.00010390590614406392,
+      "signed_pos": 8.624849579064175e-05,
+      "signed_neg": 0.00011725316289812326
+    },
+    {
+      "roi_idx": 110,
+      "network": "DefaultA",
+      "circuit": "Internal",
+      "saliency_all": 0.0010224487632513046,
+      "saliency_pos": 0.001014681882224977,
+      "saliency_neg": 0.0010283199371770024,
+      "diff": -1.3638054952025414e-05,
+      "signed_all": -0.0002029768656939268,
+      "signed_pos": -0.00020401866640895605,
+      "signed_neg": -0.00020218912686686963
+    },
+    {
+      "roi_idx": 140,
+      "network": "DefaultC",
+      "circuit": "Internal",
+      "saliency_all": 0.001015070709399879,
+      "saliency_pos": 0.000998767209239304,
+      "saliency_neg": 0.0010273937368765473,
+      "diff": -2.862652763724327e-05,
+      "signed_all": 0.0002072039496852085,
+      "signed_pos": 0.0001763446198310703,
+      "signed_neg": 0.0002305306406924501
+    },
+    {
+      "roi_idx": 109,
+      "network": "DefaultA",
+      "circuit": "Internal",
+      "saliency_all": 0.000995487323962152,
+      "saliency_pos": 0.0009742782567627728,
+      "saliency_neg": 0.0010115186451002955,
+      "diff": -3.7240388337522745e-05,
+      "signed_all": 0.0002096169046126306,
+      "signed_pos": 0.0001813379058148712,
+      "signed_neg": 0.0002309931442141533
+    },
+    {
+      "roi_idx": 96,
+      "network": "ContB",
+      "circuit": "External",
+      "saliency_all": 0.0009888773784041405,
+      "saliency_pos": 0.0009725425043143332,
+      "saliency_neg": 0.0010012267157435417,
+      "diff": -2.8684211429208517e-05,
+      "signed_all": -0.00030780251836404204,
+      "signed_pos": -0.000390085595427081,
+      "signed_neg": -0.0002456045476719737
+    },
+    {
+      "roi_idx": 18,
+      "network": "SomMotA",
+      "circuit": "External",
+      "saliency_all": 0.0009732376202009618,
+      "saliency_pos": 0.0008983260486274958,
+      "saliency_neg": 0.0010298641864210367,
+      "diff": -0.00013153813779354095,
+      "signed_all": -0.0009688459103927016,
+      "signed_pos": -0.0008946231100708246,
+      "signed_neg": -0.0010249520419165492
+    },
+    {
+      "roi_idx": 175,
+      "network": "DefaultB",
+      "circuit": "Internal",
+      "saliency_all": 0.0009376878733746707,
+      "saliency_pos": 0.0009219286148436368,
+      "saliency_neg": 0.0009496000129729509,
+      "diff": -2.7671398129314184e-05,
+      "signed_all": -0.0003174570156261325,
+      "signed_pos": -0.00031587056582793593,
+      "signed_neg": -0.0003186561807524413
+    },
+    {
+      "roi_idx": 60,
+      "network": "SalVentAttnA",
+      "circuit": "Internal",
+      "saliency_all": 0.0009330557659268379,
+      "saliency_pos": 0.0009225833346135914,
+      "saliency_neg": 0.0009409707854501903,
+      "diff": -1.8387450836598873e-05,
+      "signed_all": -0.00033080525463446975,
+      "signed_pos": -0.00033463488216511905,
+      "signed_neg": -0.0003279103257227689
+    },
+    {
+      "roi_idx": 74,
+      "network": "SalVentAttnB",
+      "circuit": "Internal",
+      "saliency_all": 0.0009257279452867806,
+      "saliency_pos": 0.0009127681259997189,
+      "saliency_neg": 0.0009355234215036035,
+      "diff": -2.2755295503884554e-05,
+      "signed_all": -0.00017804249364417046,
+      "signed_pos": -0.00017912090697791427,
+      "signed_neg": -0.00017722751363180578
+    },
+    {
+      "roi_idx": 42,
+      "network": "DorsAttnA",
+      "circuit": "External",
+      "saliency_all": 0.0009161982452496886,
+      "saliency_pos": 0.0008441128884442151,
+      "saliency_neg": 0.0009706879500299692,
+      "diff": -0.00012657506158575416,
+      "signed_all": -0.000832732766866684,
+      "signed_pos": -0.000759739545173943,
+      "signed_neg": -0.0008879086235538125
+    },
+    {
+      "roi_idx": 147,
+      "network": "TempPar",
+      "circuit": "Internal",
+      "saliency_all": 0.0008939307881519198,
+      "saliency_pos": 0.0008725596126168966,
+      "saliency_neg": 0.0009100857423618436,
+      "diff": -3.752612974494696e-05,
+      "signed_all": 0.00043213163735345006,
+      "signed_pos": 0.0004056879261042923,
+      "signed_neg": 0.00045212081749923527
+    },
+    {
+      "roi_idx": 144,
+      "network": "TempPar",
+      "circuit": "Internal",
+      "saliency_all": 0.0008905823924578726,
+      "saliency_pos": 0.0008716576267033815,
+      "saliency_neg": 0.000904888438526541,
+      "diff": -3.3230811823159456e-05,
+      "signed_all": -0.00012373155914247036,
+      "signed_pos": -0.00011871376045746729,
+      "signed_neg": -0.00012752448674291372
+    },
+    {
+      "roi_idx": 179,
+      "network": "TempPar",
+      "circuit": "Internal",
+      "saliency_all": 0.000877922575455159,
+      "saliency_pos": 0.0008710997644811869,
+      "saliency_neg": 0.0008830809965729713,
+      "diff": -1.1981232091784477e-05,
+      "signed_all": -0.00014837381604593247,
+      "signed_pos": -0.00017223831673618406,
+      "signed_neg": -0.00013033437426202
+    },
+    {
+      "roi_idx": 135,
+      "network": "DefaultC",
+      "circuit": "Internal",
+      "saliency_all": 0.0008743772632442415,
+      "saliency_pos": 0.0008594556711614132,
+      "saliency_neg": 0.0008856574422679842,
+      "diff": -2.620177110657096e-05,
+      "signed_all": -0.0002879924140870571,
+      "signed_pos": -0.0002794613828882575,
+      "signed_neg": -0.00029444106621667743
+    },
+    {
+      "roi_idx": 2,
+      "network": "VisCent",
+      "circuit": "External",
+      "saliency_all": 0.0008734932634979486,
+      "saliency_pos": 0.0008078126702457666,
+      "saliency_neg": 0.0009231416624970734,
+      "diff": -0.00011532899225130677,
+      "signed_all": 0.0008290167897939682,
+      "signed_pos": 0.0007672110805287957,
+      "signed_neg": 0.0008757361792959273
+    },
+    {
+      "roi_idx": 133,
+      "network": "DefaultB",
+      "circuit": "Internal",
+      "saliency_all": 0.0008707924280315638,
+      "saliency_pos": 0.0008643263136036694,
+      "saliency_neg": 0.0008756809984333813,
+      "diff": -1.1354684829711914e-05,
+      "signed_all": 5.8208628615830094e-05,
+      "signed_pos": 6.512549589388072e-05,
+      "signed_neg": 5.2980172768002376e-05
+    },
+    {
+      "roi_idx": 4,
+      "network": "VisCent",
+      "circuit": "External",
+      "saliency_all": 0.0008675697608850896,
+      "saliency_pos": 0.0008117664256133139,
+      "saliency_neg": 0.0009097520960494876,
+      "diff": -9.798567043617368e-05,
+      "signed_all": 0.0008236431749537587,
+      "signed_pos": 0.0007685229065828025,
+      "signed_neg": 0.0008653081604279578
+    },
+    {
+      "roi_idx": 160,
+      "network": "SalVentAttnA",
+      "circuit": "Internal",
+      "saliency_all": 0.0008453933405689895,
+      "saliency_pos": 0.0008378394995816052,
+      "saliency_neg": 0.0008511024061590433,
+      "diff": -1.3262906577438116e-05,
+      "signed_all": 6.127091182861477e-05,
+      "signed_pos": 6.226378900464624e-05,
+      "signed_neg": 6.0520393162732944e-05
+    },
+    {
+      "roi_idx": 85,
+      "network": "Limbic_OFC",
+      "circuit": "Internal",
+      "saliency_all": 0.0008410149603150785,
+      "saliency_pos": 0.0008289472316391766,
+      "saliency_neg": 0.0008501360425725579,
+      "diff": -2.118881093338132e-05,
+      "signed_all": 0.00025940011255443096,
+      "signed_pos": 0.00022829939553048462,
+      "signed_neg": 0.000282909139059484
+    },
+    {
+      "roi_idx": 174,
+      "network": "DefaultB",
+      "circuit": "Internal",
+      "saliency_all": 0.0008372904849238694,
+      "saliency_pos": 0.000820996065158397,
+      "saliency_neg": 0.0008496069349348545,
+      "diff": -2.8610869776457548e-05,
+      "signed_all": 0.00031815748661756516,
+      "signed_pos": 0.00029887250275351107,
+      "signed_neg": 0.0003327351005282253
+    },
+    {
+      "roi_idx": 51,
+      "network": "DorsAttnB",
+      "circuit": "External",
+      "saliency_all": 0.0008147250046022236,
+      "saliency_pos": 0.0007365877972915769,
+      "saliency_neg": 0.0008737895986996591,
+      "diff": -0.00013720180140808225,
+      "signed_all": -0.00038546256837435067,
+      "signed_pos": -0.00029206628096289933,
+      "signed_neg": -0.0004560612142086029
+    },
+    {
+      "roi_idx": 11,
+      "network": "VisPeri",
+      "circuit": "External",
+      "saliency_all": 0.0008057765080593526,
+      "saliency_pos": 0.0008118122350424528,
+      "saliency_neg": 0.0008012140169739723,
+      "diff": 1.0598218068480492e-05,
+      "signed_all": -0.0005829784786328673,
+      "signed_pos": -0.0006148437387309968,
+      "signed_neg": -0.0005588919157162309
+    },
+    {
+      "roi_idx": 178,
+      "network": "TempPar",
+      "circuit": "Internal",
+      "saliency_all": 0.0007915087626315653,
+      "saliency_pos": 0.0007843333296477795,
+      "saliency_neg": 0.000796932727098465,
+      "diff": -1.2599397450685501e-05,
+      "signed_all": -2.5005090265040053e-06,
+      "signed_pos": -2.6437232008902356e-05,
+      "signed_neg": 1.5593383068335243e-05
+    },
+    {
+      "roi_idx": 64,
+      "network": "SalVentAttnA",
+      "circuit": "Internal",
+      "saliency_all": 0.0007866191444918513,
+      "saliency_pos": 0.0007738232961855829,
+      "saliency_neg": 0.0007962914532981813,
+      "diff": -2.246815711259842e-05,
+      "signed_all": -0.00024395552463829517,
+      "signed_pos": -0.0002491668565198779,
+      "signed_neg": -0.0002400160301476717
+    },
+    {
+      "roi_idx": 22,
+      "network": "SomMotA",
+      "circuit": "External",
+      "saliency_all": 0.0007845915970392525,
+      "saliency_pos": 0.0007338009891100228,
+      "saliency_neg": 0.0008229847881011665,
+      "diff": -8.91837989911437e-05,
+      "signed_all": -0.0006519841845147312,
+      "signed_pos": -0.0006041907472535968,
+      "signed_neg": -0.0006881111185066402
+    },
+    {
+      "roi_idx": 128,
+      "network": "DefaultB",
+      "circuit": "Internal",
+      "saliency_all": 0.0007840530597604811,
+      "saliency_pos": 0.0007715931278653443,
+      "saliency_neg": 0.0007934706518426538,
+      "diff": -2.1877523977309465e-05,
+      "signed_all": 0.00041913799941539764,
+      "signed_pos": 0.0004138877266086638,
+      "signed_neg": 0.00042310674325563014
+    },
+    {
+      "roi_idx": 163,
+      "network": "ContA",
+      "circuit": "External",
+      "saliency_all": 0.0007827217923477292,
+      "saliency_pos": 0.0007161232060752809,
+      "saliency_neg": 0.0008330636192113161,
+      "diff": -0.0001169404131360352,
+      "signed_all": 0.0006260143709369004,
+      "signed_pos": 0.0005366563564166427,
+      "signed_neg": 0.0006935606361366808
+    },
+    {
+      "roi_idx": 173,
+      "network": "DefaultB",
+      "circuit": "Internal",
+      "saliency_all": 0.0007810273673385382,
+      "saliency_pos": 0.0007681417046114802,
+      "saliency_neg": 0.0007907683029770851,
+      "diff": -2.2626598365604877e-05,
+      "signed_all": 7.170753087848425e-05,
+      "signed_pos": 5.544240411836654e-05,
+      "signed_neg": 8.400238584727049e-05
+    },
+    {
+      "roi_idx": 54,
+      "network": "DorsAttnB",
+      "circuit": "External",
+      "saliency_all": 0.0007725470932200551,
+      "saliency_pos": 0.0007174400961957872,
+      "saliency_neg": 0.0008142029400914907,
+      "diff": -9.676284389570355e-05,
+      "signed_all": -0.0006821239949204028,
+      "signed_pos": -0.0006373667856678367,
+      "signed_neg": -0.0007159556844271719
+    },
+    {
+      "roi_idx": 161,
+      "network": "SalVentAttnA",
+      "circuit": "Internal",
+      "saliency_all": 0.0007720545982010663,
+      "saliency_pos": 0.0007638123934157193,
+      "saliency_neg": 0.0007782852044329047,
+      "diff": -1.447281101718545e-05,
+      "signed_all": 0.00019413165864534676,
+      "signed_pos": 0.00020174308156128973,
+      "signed_neg": 0.00018837820971384645
+    },
+    {
+      "roi_idx": 39,
+      "network": "SomMotB",
+      "circuit": "External",
+      "saliency_all": 0.0007605025894008577,
+      "saliency_pos": 0.0007053063018247485,
+      "saliency_neg": 0.0008022248512133956,
+      "diff": -9.691854938864708e-05,
+      "signed_all": -0.0006471250671893358,
+      "signed_pos": -0.000594382407143712,
+      "signed_neg": -0.0006869937642477453
+    }
+  ],
+  "roi_signed_top20_positive": [
+    {
+      "roi_idx": 3,
+      "network": "VisCent",
+      "circuit": "External",
+      "saliency_all": 0.0010666778543964028,
+      "saliency_pos": 0.0010059982305392623,
+      "saliency_neg": 0.0011125451419502497,
+      "diff": -0.00010654691141098738,
+      "signed_all": 0.0010065913666039705,
+      "signed_pos": 0.000950144836679101,
+      "signed_neg": 0.0010492587462067604
+    },
+    {
+      "roi_idx": 2,
+      "network": "VisCent",
+      "circuit": "External",
+      "saliency_all": 0.0008734932634979486,
+      "saliency_pos": 0.0008078126702457666,
+      "saliency_neg": 0.0009231416624970734,
+      "diff": -0.00011532899225130677,
+      "signed_all": 0.0008290167897939682,
+      "signed_pos": 0.0007672110805287957,
+      "signed_neg": 0.0008757361792959273
+    },
+    {
+      "roi_idx": 4,
+      "network": "VisCent",
+      "circuit": "External",
+      "saliency_all": 0.0008675697608850896,
+      "saliency_pos": 0.0008117664256133139,
+      "saliency_neg": 0.0009097520960494876,
+      "diff": -9.798567043617368e-05,
+      "signed_all": 0.0008236431749537587,
+      "signed_pos": 0.0007685229065828025,
+      "signed_neg": 0.0008653081604279578
+    },
+    {
+      "roi_idx": 33,
+      "network": "SomMotB",
+      "circuit": "External",
+      "saliency_all": 0.0006914819241501391,
+      "saliency_pos": 0.0006661575171165168,
+      "saliency_neg": 0.000710625434294343,
+      "diff": -4.4467917177826166e-05,
+      "signed_all": 0.0006853840313851833,
+      "signed_pos": 0.0006589772528968751,
+      "signed_neg": 0.0007053453591652215
+    },
+    {
+      "roi_idx": 171,
+      "network": "DefaultA",
+      "circuit": "Internal",
+      "saliency_all": 0.0019574251491576433,
+      "saliency_pos": 0.0019307223847135901,
+      "saliency_neg": 0.001977610867470503,
+      "diff": -4.688848275691271e-05,
+      "signed_all": 0.0006646921392530203,
+      "signed_pos": 0.0006624085363000631,
+      "signed_neg": 0.0006664186366833746
+    },
+    {
+      "roi_idx": 163,
+      "network": "ContA",
+      "circuit": "External",
+      "saliency_all": 0.0007827217923477292,
+      "saliency_pos": 0.0007161232060752809,
+      "saliency_neg": 0.0008330636192113161,
+      "diff": -0.0001169404131360352,
+      "signed_all": 0.0006260143709369004,
+      "signed_pos": 0.0005366563564166427,
+      "signed_neg": 0.0006935606361366808
+    },
+    {
+      "roi_idx": 86,
+      "network": "ContA",
+      "circuit": "External",
+      "saliency_all": 0.0006900154403410852,
+      "saliency_pos": 0.000630889437161386,
+      "saliency_neg": 0.0007347097853198647,
+      "diff": -0.00010382034815847874,
+      "signed_all": 0.0006048925570212305,
+      "signed_pos": 0.0005425164708867669,
+      "signed_neg": 0.0006520431488752365
+    },
+    {
+      "roi_idx": 152,
+      "network": "SomMotA",
+      "circuit": "External",
+      "saliency_all": 0.0007316727424040437,
+      "saliency_pos": 0.0007363922777585685,
+      "saliency_neg": 0.0007281057769432664,
+      "diff": 8.286500815302134e-06,
+      "signed_all": 0.0005981152644380927,
+      "signed_pos": 0.0006120272446423769,
+      "signed_neg": 0.0005875990027561784
+    },
+    {
+      "roi_idx": 104,
+      "network": "ContC",
+      "circuit": "External",
+      "saliency_all": 0.0006116717704571784,
+      "saliency_pos": 0.0005595031543634832,
+      "saliency_neg": 0.0006511070532724261,
+      "diff": -9.160389890894294e-05,
+      "signed_all": 0.0005980837158858776,
+      "signed_pos": 0.0005476346705108881,
+      "signed_neg": 0.0006362185813486576
+    },
+    {
+      "roi_idx": 0,
+      "network": "VisCent",
+      "circuit": "External",
+      "saliency_all": 0.0006885749171487987,
+      "saliency_pos": 0.0006509581580758095,
+      "saliency_neg": 0.0007170099415816367,
+      "diff": -6.605178350582719e-05,
+      "signed_all": 0.0005910051986575127,
+      "signed_pos": 0.0005601695738732815,
+      "signed_neg": 0.0006143141072243452
+    },
+    {
+      "roi_idx": 134,
+      "network": "DefaultC",
+      "circuit": "Internal",
+      "saliency_all": 0.001699667191132903,
+      "saliency_pos": 0.0016687815077602863,
+      "saliency_neg": 0.001723012886941433,
+      "diff": -5.423137918114662e-05,
+      "signed_all": 0.0005380413495004177,
+      "signed_pos": 0.0005072968197055161,
+      "signed_neg": 0.0005612816894426942
+    },
+    {
+      "roi_idx": 20,
+      "network": "SomMotA",
+      "circuit": "External",
+      "saliency_all": 0.0005676185828633606,
+      "saliency_pos": 0.0004922624211758375,
+      "saliency_neg": 0.000624580483417958,
+      "diff": -0.0001323180622421205,
+      "signed_all": 0.00047713189269416034,
+      "signed_pos": 0.00039348265272565186,
+      "signed_neg": 0.0005403629038482904
+    },
+    {
+      "roi_idx": 34,
+      "network": "SomMotB",
+      "circuit": "External",
+      "saliency_all": 0.0004984287661500275,
+      "saliency_pos": 0.00048157566925510764,
+      "saliency_neg": 0.0005111686768941581,
+      "diff": -2.9593007639050484e-05,
+      "signed_all": 0.0004701657162513584,
+      "signed_pos": 0.00045035997754894197,
+      "signed_neg": 0.00048513736692257226
+    },
+    {
+      "roi_idx": 103,
+      "network": "ContC",
+      "circuit": "External",
+      "saliency_all": 0.0004848262178711593,
+      "saliency_pos": 0.0004392728442326188,
+      "saliency_neg": 0.0005192598910070956,
+      "diff": -7.998704677447677e-05,
+      "signed_all": 0.00046913421829231083,
+      "signed_pos": 0.0004245750023983419,
+      "signed_neg": 0.000502816285006702
+    },
+    {
+      "roi_idx": 88,
+      "network": "ContA",
+      "circuit": "External",
+      "saliency_all": 0.0005341765354387462,
+      "saliency_pos": 0.0005255594151094556,
+      "saliency_neg": 0.0005406906129792333,
+      "diff": -1.513119786977768e-05,
+      "signed_all": 0.0004530349397100508,
+      "signed_pos": 0.00044226180762052536,
+      "signed_neg": 0.0004611779877450317
+    },
+    {
+      "roi_idx": 17,
+      "network": "VisPeri",
+      "circuit": "External",
+      "saliency_all": 0.0005158549756743014,
+      "saliency_pos": 0.0004514270112849772,
+      "saliency_neg": 0.000564556336030364,
+      "diff": -0.00011312932474538684,
+      "signed_all": 0.0004442345816642046,
+      "signed_pos": 0.00038943366962485015,
+      "signed_neg": 0.00048565896577201784
+    },
+    {
+      "roi_idx": 32,
+      "network": "SomMotB",
+      "circuit": "External",
+      "saliency_all": 0.0004841859918087721,
+      "saliency_pos": 0.00046955954167060554,
+      "saliency_neg": 0.0004952421877533197,
+      "diff": -2.56826460827142e-05,
+      "signed_all": 0.00043642849777825177,
+      "signed_pos": 0.00041877906187437475,
+      "signed_neg": 0.00044976992649026215
+    },
+    {
+      "roi_idx": 30,
+      "network": "SomMotA",
+      "circuit": "External",
+      "saliency_all": 0.0006534418207593262,
+      "saliency_pos": 0.0006594590377062559,
+      "saliency_neg": 0.0006488930666819215,
+      "diff": 1.056597102433443e-05,
+      "signed_all": 0.0004358015430625528,
+      "signed_pos": 0.0004510974686127156,
+      "signed_neg": 0.000424239260610193
+    },
+    {
+      "roi_idx": 147,
+      "network": "TempPar",
+      "circuit": "Internal",
+      "saliency_all": 0.0008939307881519198,
+      "saliency_pos": 0.0008725596126168966,
+      "saliency_neg": 0.0009100857423618436,
+      "diff": -3.752612974494696e-05,
+      "signed_all": 0.00043213163735345006,
+      "signed_pos": 0.0004056879261042923,
+      "signed_neg": 0.00045212081749923527
+    },
+    {
+      "roi_idx": 128,
+      "network": "DefaultB",
+      "circuit": "Internal",
+      "saliency_all": 0.0007840530597604811,
+      "saliency_pos": 0.0007715931278653443,
+      "saliency_neg": 0.0007934706518426538,
+      "diff": -2.1877523977309465e-05,
+      "signed_all": 0.00041913799941539764,
+      "signed_pos": 0.0004138877266086638,
+      "signed_neg": 0.00042310674325563014
+    }
+  ],
+  "roi_signed_top20_negative": [
+    {
+      "roi_idx": 25,
+      "network": "SomMotA",
+      "circuit": "External",
+      "saliency_all": 0.0012108591618016362,
+      "saliency_pos": 0.0011346782557666302,
+      "saliency_neg": 0.0012684431858360767,
+      "diff": -0.00013376493006944656,
+      "signed_all": -0.0011366500984877348,
+      "signed_pos": -0.0010654611978679895,
+      "signed_neg": -0.0011904618004336953
+    },
+    {
+      "roi_idx": 18,
+      "network": "SomMotA",
+      "circuit": "External",
+      "saliency_all": 0.0009732376202009618,
+      "saliency_pos": 0.0008983260486274958,
+      "saliency_neg": 0.0010298641864210367,
+      "diff": -0.00013153813779354095,
+      "signed_all": -0.0009688459103927016,
+      "signed_pos": -0.0008946231100708246,
+      "signed_neg": -0.0010249520419165492
+    },
+    {
+      "roi_idx": 10,
+      "network": "VisPeri",
+      "circuit": "External",
+      "saliency_all": 0.0010542388772591949,
+      "saliency_pos": 0.0010239213006570935,
+      "saliency_neg": 0.001077155233360827,
+      "diff": -5.3233932703733444e-05,
+      "signed_all": -0.0009118911111727357,
+      "signed_pos": -0.0008872558828443289,
+      "signed_neg": -0.0009305126732215285
+    },
+    {
+      "roi_idx": 8,
+      "network": "VisPeri",
+      "circuit": "External",
+      "saliency_all": 0.0010623637354001403,
+      "saliency_pos": 0.001008330611512065,
+      "saliency_neg": 0.0011032086331397295,
+      "diff": -9.487802162766457e-05,
+      "signed_all": -0.0008825649274513125,
+      "signed_pos": -0.0008442498510703444,
+      "signed_neg": -0.0009115264983847737
+    },
+    {
+      "roi_idx": 42,
+      "network": "DorsAttnA",
+      "circuit": "External",
+      "saliency_all": 0.0009161982452496886,
+      "saliency_pos": 0.0008441128884442151,
+      "saliency_neg": 0.0009706879500299692,
+      "diff": -0.00012657506158575416,
+      "signed_all": -0.000832732766866684,
+      "signed_pos": -0.000759739545173943,
+      "signed_neg": -0.0008879086235538125
+    },
+    {
+      "roi_idx": 92,
+      "network": "ContA",
+      "circuit": "External",
+      "saliency_all": 0.001060193288139999,
+      "saliency_pos": 0.001052345149219036,
+      "saliency_neg": 0.001066126162186265,
+      "diff": -1.378101296722889e-05,
+      "signed_all": -0.0008155203540809453,
+      "signed_pos": -0.0008338721818290651,
+      "signed_neg": -0.000801648071501404
+    },
+    {
+      "roi_idx": 54,
+      "network": "DorsAttnB",
+      "circuit": "External",
+      "saliency_all": 0.0007725470932200551,
+      "saliency_pos": 0.0007174400961957872,
+      "saliency_neg": 0.0008142029400914907,
+      "diff": -9.676284389570355e-05,
+      "signed_all": -0.0006821239949204028,
+      "signed_pos": -0.0006373667856678367,
+      "signed_neg": -0.0007159556844271719
+    },
+    {
+      "roi_idx": 22,
+      "network": "SomMotA",
+      "circuit": "External",
+      "saliency_all": 0.0007845915970392525,
+      "saliency_pos": 0.0007338009891100228,
+      "saliency_neg": 0.0008229847881011665,
+      "diff": -8.91837989911437e-05,
+      "signed_all": -0.0006519841845147312,
+      "signed_pos": -0.0006041907472535968,
+      "signed_neg": -0.0006881111185066402
+    },
+    {
+      "roi_idx": 39,
+      "network": "SomMotB",
+      "circuit": "External",
+      "saliency_all": 0.0007605025894008577,
+      "saliency_pos": 0.0007053063018247485,
+      "saliency_neg": 0.0008022248512133956,
+      "diff": -9.691854938864708e-05,
+      "signed_all": -0.0006471250671893358,
+      "signed_pos": -0.000594382407143712,
+      "signed_neg": -0.0006869937642477453
+    },
+    {
+      "roi_idx": 7,
+      "network": "VisCent",
+      "circuit": "External",
+      "saliency_all": 0.0007086577243171632,
+      "saliency_pos": 0.0006309523014351726,
+      "saliency_neg": 0.0007673948421142995,
+      "diff": -0.00013644254067912698,
+      "signed_all": -0.0005856719217263162,
+      "signed_pos": -0.0005144251044839621,
+      "signed_neg": -0.00063952716300264
+    },
+    {
+      "roi_idx": 11,
+      "network": "VisPeri",
+      "circuit": "External",
+      "saliency_all": 0.0008057765080593526,
+      "saliency_pos": 0.0008118122350424528,
+      "saliency_neg": 0.0008012140169739723,
+      "diff": 1.0598218068480492e-05,
+      "signed_all": -0.0005829784786328673,
+      "signed_pos": -0.0006148437387309968,
+      "signed_neg": -0.0005588919157162309
+    },
+    {
+      "roi_idx": 73,
+      "network": "SalVentAttnB",
+      "circuit": "Internal",
+      "saliency_all": 0.002147563500329852,
+      "saliency_pos": 0.00210724794305861,
+      "saliency_neg": 0.0021780389361083508,
+      "diff": -7.079099304974079e-05,
+      "signed_all": -0.0005530344787985086,
+      "signed_pos": -0.0005314575973898172,
+      "signed_neg": -0.0005693439743481576
+    },
+    {
+      "roi_idx": 9,
+      "network": "VisPeri",
+      "circuit": "External",
+      "saliency_all": 0.0007260877173393965,
+      "saliency_pos": 0.000715413480065763,
+      "saliency_neg": 0.0007341558812186122,
+      "diff": -1.8742401152849197e-05,
+      "signed_all": -0.0005204733461141586,
+      "signed_pos": -0.000532917445525527,
+      "signed_neg": -0.0005110668134875596
+    },
+    {
+      "roi_idx": 16,
+      "network": "VisPeri",
+      "circuit": "External",
+      "saliency_all": 0.0004500031645875424,
+      "saliency_pos": 0.0004020842898171395,
+      "saliency_neg": 0.0004862250934820622,
+      "diff": -8.414080366492271e-05,
+      "signed_all": -0.00043672314495779574,
+      "signed_pos": -0.00038788880920037627,
+      "signed_neg": -0.00047363704652525485
+    },
+    {
+      "roi_idx": 43,
+      "network": "DorsAttnA",
+      "circuit": "External",
+      "saliency_all": 0.0004638848186004907,
+      "saliency_pos": 0.00044355899444781244,
+      "saliency_neg": 0.00047924896352924407,
+      "diff": -3.568996908143163e-05,
+      "signed_all": -0.0004068209382239729,
+      "signed_pos": -0.0003872678498737514,
+      "signed_neg": -0.0004216014058329165
+    },
+    {
+      "roi_idx": 117,
+      "network": "DefaultA",
+      "circuit": "Internal",
+      "saliency_all": 0.0010526054538786411,
+      "saliency_pos": 0.0010283966548740864,
+      "saliency_neg": 0.0010709050111472607,
+      "diff": -4.2508356273174286e-05,
+      "signed_all": -0.00040674384217709303,
+      "signed_pos": -0.0003883480385411531,
+      "signed_neg": -0.0004206495068501681
+    },
+    {
+      "roi_idx": 169,
+      "network": "DefaultA",
+      "circuit": "Internal",
+      "saliency_all": 0.0012303879484534264,
+      "saliency_pos": 0.001212017610669136,
+      "saliency_neg": 0.001244274666532874,
+      "diff": -3.225705586373806e-05,
+      "signed_all": -0.00040045499918051064,
+      "signed_pos": -0.0003860118449665606,
+      "signed_neg": -0.0004113728064112365
+    },
+    {
+      "roi_idx": 52,
+      "network": "DorsAttnB",
+      "circuit": "External",
+      "saliency_all": 0.0005687496159225702,
+      "saliency_pos": 0.000541226239874959,
+      "saliency_neg": 0.0005895544891245663,
+      "diff": -4.8328249249607325e-05,
+      "signed_all": -0.0003980509063694626,
+      "signed_pos": -0.0003735079080797732,
+      "signed_neg": -0.0004166032304055989
+    },
+    {
+      "roi_idx": 51,
+      "network": "DorsAttnB",
+      "circuit": "External",
+      "saliency_all": 0.0008147250046022236,
+      "saliency_pos": 0.0007365877972915769,
+      "saliency_neg": 0.0008737895986996591,
+      "diff": -0.00013720180140808225,
+      "signed_all": -0.00038546256837435067,
+      "signed_pos": -0.00029206628096289933,
+      "signed_neg": -0.0004560612142086029
+    },
+    {
+      "roi_idx": 40,
+      "network": "DorsAttnA",
+      "circuit": "External",
+      "saliency_all": 0.0006467255298048258,
+      "saliency_pos": 0.0005818742793053389,
+      "saliency_neg": 0.0006957465666346252,
+      "diff": -0.00011387228732928634,
+      "signed_all": -0.0003650436701718718,
+      "signed_pos": -0.00031015576678328216,
+      "signed_neg": -0.0004065339162480086
+    }
+  ],
+  "input_weight_analysis": {
+    "Internal": {
+      "network_summary": {
+        "SalVentAttnA": {
+          "mean_weight_norm": 0.608054502805074,
+          "std_weight_norm": 0.06304157858071431,
+          "max_weight_norm": 0.731506884098053,
+          "n_rois": 15
+        },
+        "SalVentAttnB": {
+          "mean_weight_norm": 0.6524767031272253,
+          "std_weight_norm": 0.18420688059497187,
+          "max_weight_norm": 1.0350310802459717,
+          "n_rois": 6
+        },
+        "Limbic_TempPole": {
+          "mean_weight_norm": 0.6291238814592361,
+          "std_weight_norm": 0.09688032340990779,
+          "max_weight_norm": 0.785404622554779,
+          "n_rois": 4
+        },
+        "Limbic_OFC": {
+          "mean_weight_norm": 0.6562648415565491,
+          "std_weight_norm": 0.0902633821398585,
+          "max_weight_norm": 0.7520073652267456,
+          "n_rois": 4
+        },
+        "DefaultA": {
+          "mean_weight_norm": 0.6183912285736629,
+          "std_weight_norm": 0.12816022466407775,
+          "max_weight_norm": 1.0639742612838745,
+          "n_rois": 21
+        },
+        "DefaultB": {
+          "mean_weight_norm": 0.605407115072012,
+          "std_weight_norm": 0.06245680439440981,
+          "max_weight_norm": 0.722809910774231,
+          "n_rois": 16
+        },
+        "DefaultC": {
+          "mean_weight_norm": 0.6752691566944122,
+          "std_weight_norm": 0.13138918524144066,
+          "max_weight_norm": 0.9934098124504089,
+          "n_rois": 10
+        },
+        "TempPar": {
+          "mean_weight_norm": 0.5860554426908493,
+          "std_weight_norm": 0.051071831446007604,
+          "max_weight_norm": 0.6740775108337402,
+          "n_rois": 8
+        }
+      },
+      "top_rois": [
+        {
+          "global_roi_idx": 171,
+          "local_roi_idx": 75,
+          "network": "DefaultA",
+          "weight_norm": 1.0639742612838745
+        },
+        {
+          "global_roi_idx": 73,
+          "local_roi_idx": 13,
+          "network": "SalVentAttnB",
+          "weight_norm": 1.0350310802459717
+        },
+        {
+          "global_roi_idx": 134,
+          "local_roi_idx": 54,
+          "network": "DefaultC",
+          "weight_norm": 0.9934098124504089
+        },
+        {
+          "global_roi_idx": 80,
+          "local_roi_idx": 20,
+          "network": "Limbic_TempPole",
+          "weight_norm": 0.785404622554779
+        },
+        {
+          "global_roi_idx": 169,
+          "local_roi_idx": 73,
+          "network": "DefaultA",
+          "weight_norm": 0.7687902450561523
+        },
+        {
+          "global_roi_idx": 168,
+          "local_roi_idx": 72,
+          "network": "DefaultA",
+          "weight_norm": 0.7556025981903076
+        },
+        {
+          "global_roi_idx": 83,
+          "local_roi_idx": 23,
+          "network": "Limbic_OFC",
+          "weight_norm": 0.7520073652267456
+        },
+        {
+          "global_roi_idx": 141,
+          "local_roi_idx": 61,
+          "network": "DefaultC",
+          "weight_norm": 0.7367115020751953
+        },
+        {
+          "global_roi_idx": 82,
+          "local_roi_idx": 22,
+          "network": "Limbic_OFC",
+          "weight_norm": 0.7364741563796997
+        },
+        {
+          "global_roi_idx": 65,
+          "local_roi_idx": 5,
+          "network": "SalVentAttnA",
+          "weight_norm": 0.731506884098053
+        }
+      ]
+    },
+    "External": {
+      "network_summary": {
+        "VisCent": {
+          "mean_weight_norm": 0.5922016680240632,
+          "std_weight_norm": 0.07900715216525182,
+          "max_weight_norm": 0.6972939372062683,
+          "n_rois": 10
+        },
+        "VisPeri": {
+          "mean_weight_norm": 0.6041991064945856,
+          "std_weight_norm": 0.07092620162055077,
+          "max_weight_norm": 0.7270073890686035,
+          "n_rois": 12
+        },
+        "SomMotA": {
+          "mean_weight_norm": 0.6075601782649755,
+          "std_weight_norm": 0.08637359591659706,
+          "max_weight_norm": 0.794546365737915,
+          "n_rois": 16
+        },
+        "SomMotB": {
+          "mean_weight_norm": 0.5741831660270691,
+          "std_weight_norm": 0.04058346043928845,
+          "max_weight_norm": 0.6176066994667053,
+          "n_rois": 8
+        },
+        "DorsAttnA": {
+          "mean_weight_norm": 0.577270698088866,
+          "std_weight_norm": 0.07792934417642018,
+          "max_weight_norm": 0.7367755770683289,
+          "n_rois": 13
+        },
+        "DorsAttnB": {
+          "mean_weight_norm": 0.5867602576812109,
+          "std_weight_norm": 0.06707135778349577,
+          "max_weight_norm": 0.7344467639923096,
+          "n_rois": 12
+        },
+        "ContA": {
+          "mean_weight_norm": 0.6159080129403335,
+          "std_weight_norm": 0.07365066122069289,
+          "max_weight_norm": 0.7724798321723938,
+          "n_rois": 13
+        },
+        "ContB": {
+          "mean_weight_norm": 0.5763622857630253,
+          "std_weight_norm": 0.08499337329307032,
+          "max_weight_norm": 0.7288181781768799,
+          "n_rois": 8
+        },
+        "ContC": {
+          "mean_weight_norm": 0.5342847481369972,
+          "std_weight_norm": 0.05230149345200681,
+          "max_weight_norm": 0.61259925365448,
+          "n_rois": 4
+        }
+      },
+      "top_rois": [
+        {
+          "global_roi_idx": 25,
+          "local_roi_idx": 25,
+          "network": "SomMotA",
+          "weight_norm": 0.794546365737915
+        },
+        {
+          "global_roi_idx": 92,
+          "local_roi_idx": 66,
+          "network": "ContA",
+          "weight_norm": 0.7724798321723938
+        },
+        {
+          "global_roi_idx": 18,
+          "local_roi_idx": 18,
+          "network": "SomMotA",
+          "weight_norm": 0.7719157934188843
+        },
+        {
+          "global_roi_idx": 42,
+          "local_roi_idx": 42,
+          "network": "DorsAttnA",
+          "weight_norm": 0.7367755770683289
+        },
+        {
+          "global_roi_idx": 51,
+          "local_roi_idx": 51,
+          "network": "DorsAttnB",
+          "weight_norm": 0.7344467639923096
+        },
+        {
+          "global_roi_idx": 96,
+          "local_roi_idx": 70,
+          "network": "ContB",
+          "weight_norm": 0.7288181781768799
+        },
+        {
+          "global_roi_idx": 8,
+          "local_roi_idx": 8,
+          "network": "VisPeri",
+          "weight_norm": 0.7270073890686035
+        },
+        {
+          "global_roi_idx": 163,
+          "local_roi_idx": 92,
+          "network": "ContA",
+          "weight_norm": 0.7220969796180725
+        },
+        {
+          "global_roi_idx": 10,
+          "local_roi_idx": 10,
+          "network": "VisPeri",
+          "weight_norm": 0.7171589136123657
+        },
+        {
+          "global_roi_idx": 100,
+          "local_roi_idx": 74,
+          "network": "ContB",
+          "weight_norm": 0.7089983820915222
+        }
+      ]
+    }
+  }
+}

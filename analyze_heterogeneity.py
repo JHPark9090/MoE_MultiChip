@@ -37,6 +37,7 @@ from scipy.stats import f_oneway, kruskal
 import scipy.constants  # noqa: F401
 
 from dataloaders.Load_ABCD_fMRI import load_abcd_fmri
+from dataloaders.hcp_mmp1_labels import get_roi_name
 from models.yeo17_networks import (
     YEO17_HCP180, get_circuit_config, get_circuit_roi_indices,
 )
@@ -438,6 +439,7 @@ def characterize_roi_clusters(roi_scores, signed_roi_scores, cluster_ids,
         for roi_idx in top_roi_indices:
             top_rois.append({
                 "roi_idx": int(roi_idx),
+                "region": get_roi_name(int(roi_idx)),
                 "network": roi_to_net.get(int(roi_idx), "unknown"),
                 "score": float(mean_scores[roi_idx]),
                 "signed_score": float(mean_signed[roi_idx]),
@@ -452,6 +454,7 @@ def characterize_roi_clusters(roi_scores, signed_roi_scores, cluster_ids,
         for roi_idx in top_positive_idx:
             top_positive.append({
                 "roi_idx": int(roi_idx),
+                "region": get_roi_name(int(roi_idx)),
                 "network": roi_to_net.get(int(roi_idx), "unknown"),
                 "signed_score": float(mean_signed[roi_idx]),
             })
@@ -460,6 +463,7 @@ def characterize_roi_clusters(roi_scores, signed_roi_scores, cluster_ids,
         for roi_idx in top_negative_idx:
             top_negative.append({
                 "roi_idx": int(roi_idx),
+                "region": get_roi_name(int(roi_idx)),
                 "network": roi_to_net.get(int(roi_idx), "unknown"),
                 "signed_score": float(mean_signed[roi_idx]),
             })
@@ -585,10 +589,10 @@ def generate_heterogeneity_report(circuit_results, expert_results,
             ci = roi_results[f"cluster_{c}"]
             lines.append(f"### Cluster {c} — Top 10 ROIs by Importance (N={ci['n_subjects']})")
             lines.append("")
-            lines.append("| Rank | ROI | Network | Importance | Signed | Direction |")
-            lines.append("|:----:|:---:|---------|:----------:|:------:|:---------:|")
+            lines.append("| Rank | ROI | Region | Network | Importance | Signed | Direction |")
+            lines.append("|:----:|:---:|--------|---------|:----------:|:------:|:---------:|")
             for rank, roi in enumerate(ci["top_rois"], 1):
-                lines.append(f"| {rank} | {roi['roi_idx']} | "
+                lines.append(f"| {rank} | {roi['roi_idx']} | {roi['region']} | "
                              f"{roi['network']} | {roi['score']:.4f} | "
                              f"{roi['signed_score']:+.4f} | {roi['direction']} |")
             lines.append("")
@@ -596,19 +600,19 @@ def generate_heterogeneity_report(circuit_results, expert_results,
             # Positive and negative ROIs per cluster
             lines.append(f"**Top 5 ROIs with positive (+ADHD) relationship:**")
             lines.append("")
-            lines.append("| ROI | Network | Signed Score |")
-            lines.append("|:---:|---------|:------------:|")
+            lines.append("| ROI | Region | Network | Signed Score |")
+            lines.append("|:---:|--------|---------|:------------:|")
             for roi in ci["top_positive_rois"]:
-                lines.append(f"| {roi['roi_idx']} | {roi['network']} | "
+                lines.append(f"| {roi['roi_idx']} | {roi['region']} | {roi['network']} | "
                              f"{roi['signed_score']:+.4f} |")
             lines.append("")
 
             lines.append(f"**Top 5 ROIs with negative (-ADHD) relationship:**")
             lines.append("")
-            lines.append("| ROI | Network | Signed Score |")
-            lines.append("|:---:|---------|:------------:|")
+            lines.append("| ROI | Region | Network | Signed Score |")
+            lines.append("|:---:|--------|---------|:------------:|")
             for roi in ci["top_negative_rois"]:
-                lines.append(f"| {roi['roi_idx']} | {roi['network']} | "
+                lines.append(f"| {roi['roi_idx']} | {roi['region']} | {roi['network']} | "
                              f"{roi['signed_score']:+.4f} |")
             lines.append("")
 

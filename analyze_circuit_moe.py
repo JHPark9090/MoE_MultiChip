@@ -32,6 +32,7 @@ from tqdm import tqdm
 import scipy.constants  # noqa: F401
 
 from dataloaders.Load_ABCD_fMRI import load_abcd_fmri
+from dataloaders.hcp_mmp1_labels import get_roi_name
 from models.yeo17_networks import (
     YEO17_HCP180, get_circuit_config, get_circuit_roi_indices,
 )
@@ -243,6 +244,7 @@ def analyze_gradient_saliency(model, test_loader, device, circuit_config_name):
     for roi_idx in range(180):
         roi_saliency.append({
             "roi_idx": int(roi_idx),
+            "region": get_roi_name(roi_idx),
             "network": roi_to_net.get(roi_idx, "unknown"),
             "circuit": roi_to_circuit.get(roi_idx, "unknown"),
             "saliency_all": float(saliency_all[roi_idx]),
@@ -304,6 +306,7 @@ def analyze_input_weights(model, circuit_config_name):
         for local_idx, global_idx in enumerate(roi_indices):
             roi_weights.append({
                 "global_roi_idx": int(global_idx),
+                "region": get_roi_name(global_idx),
                 "local_roi_idx": int(local_idx),
                 "network": roi_to_net.get(global_idx, "unknown"),
                 "weight_norm": float(roi_weight_norms[local_idx]),
@@ -475,21 +478,21 @@ def generate_report(gate_results, saliency_results, weight_results,
         lines.append(f"")
         lines.append(f"**Top 5 ROIs by weight magnitude:**")
         lines.append(f"")
-        lines.append(f"| ROI | Network | Weight Norm |")
-        lines.append(f"|:---:|---------|:----------:|")
+        lines.append(f"| ROI | Region | Network | Weight Norm |")
+        lines.append(f"|:---:|--------|---------|:----------:|")
         for rw in wr["top_rois"][:5]:
-            lines.append(f"| {rw['global_roi_idx']} | {rw['network']} | "
+            lines.append(f"| {rw['global_roi_idx']} | {rw['region']} | {rw['network']} | "
                          f"{rw['weight_norm']:.4f} |")
         lines.append(f"")
 
     # --- ROI Level: Absolute ---
     lines.append(f"## 5. ROI-Level Analysis: Top 20 ROIs by Absolute Saliency")
     lines.append(f"")
-    lines.append(f"| Rank | ROI | Network | Circuit | Saliency | ADHD+ | ADHD- | Diff |")
-    lines.append(f"|:----:|:---:|---------|---------|:--------:|:-----:|:-----:|:----:|")
+    lines.append(f"| Rank | ROI | Region | Network | Circuit | Saliency | ADHD+ | ADHD- | Diff |")
+    lines.append(f"|:----:|:---:|--------|---------|---------|:--------:|:-----:|:-----:|:----:|")
 
     for rank, roi in enumerate(saliency_results["roi_saliency"][:20], 1):
-        lines.append(f"| {rank} | {roi['roi_idx']} | {roi['network']} | "
+        lines.append(f"| {rank} | {roi['roi_idx']} | {roi['region']} | {roi['network']} | "
                      f"{roi['circuit']} | {roi['saliency_all']:.6f} | "
                      f"{roi['saliency_pos']:.6f} | {roi['saliency_neg']:.6f} | "
                      f"{roi['diff']:+.6f} |")
@@ -505,10 +508,10 @@ def generate_report(gate_results, saliency_results, weight_results,
 
     sorted_by_diff = sorted(saliency_results["roi_saliency"],
                            key=lambda x: abs(x["diff"]), reverse=True)
-    lines.append(f"| Rank | ROI | Network | Circuit | Diff | ADHD+ | ADHD- |")
-    lines.append(f"|:----:|:---:|---------|---------|:----:|:-----:|:-----:|")
+    lines.append(f"| Rank | ROI | Region | Network | Circuit | Diff | ADHD+ | ADHD- |")
+    lines.append(f"|:----:|:---:|--------|---------|---------|:----:|:-----:|:-----:|")
     for rank, roi in enumerate(sorted_by_diff[:20], 1):
-        lines.append(f"| {rank} | {roi['roi_idx']} | {roi['network']} | "
+        lines.append(f"| {rank} | {roi['roi_idx']} | {roi['region']} | {roi['network']} | "
                      f"{roi['circuit']} | {roi['diff']:+.6f} | "
                      f"{roi['saliency_pos']:.6f} | {roi['saliency_neg']:.6f} |")
 
@@ -525,13 +528,13 @@ def generate_report(gate_results, saliency_results, weight_results,
     # Top 10 most positive (pro-ADHD)
     lines.append(f"### Top 10 ROIs with Strongest Positive (+ADHD) Relationship")
     lines.append(f"")
-    lines.append(f"| Rank | ROI | Network | Circuit | Signed (all) | Signed ADHD+ | Signed ADHD- |")
-    lines.append(f"|:----:|:---:|---------|---------|:------------:|:------------:|:------------:|")
+    lines.append(f"| Rank | ROI | Region | Network | Circuit | Signed (all) | Signed ADHD+ | Signed ADHD- |")
+    lines.append(f"|:----:|:---:|--------|---------|---------|:------------:|:------------:|:------------:|")
 
     sorted_positive = sorted(saliency_results["roi_saliency"],
                              key=lambda x: x["signed_all"], reverse=True)
     for rank, roi in enumerate(sorted_positive[:10], 1):
-        lines.append(f"| {rank} | {roi['roi_idx']} | {roi['network']} | "
+        lines.append(f"| {rank} | {roi['roi_idx']} | {roi['region']} | {roi['network']} | "
                      f"{roi['circuit']} | {roi['signed_all']:+.6f} | "
                      f"{roi['signed_pos']:+.6f} | {roi['signed_neg']:+.6f} |")
 
@@ -540,13 +543,13 @@ def generate_report(gate_results, saliency_results, weight_results,
     # Top 10 most negative (anti-ADHD)
     lines.append(f"### Top 10 ROIs with Strongest Negative (-ADHD) Relationship")
     lines.append(f"")
-    lines.append(f"| Rank | ROI | Network | Circuit | Signed (all) | Signed ADHD+ | Signed ADHD- |")
-    lines.append(f"|:----:|:---:|---------|---------|:------------:|:------------:|:------------:|")
+    lines.append(f"| Rank | ROI | Region | Network | Circuit | Signed (all) | Signed ADHD+ | Signed ADHD- |")
+    lines.append(f"|:----:|:---:|--------|---------|---------|:------------:|:------------:|:------------:|")
 
     sorted_negative = sorted(saliency_results["roi_saliency"],
                              key=lambda x: x["signed_all"])
     for rank, roi in enumerate(sorted_negative[:10], 1):
-        lines.append(f"| {rank} | {roi['roi_idx']} | {roi['network']} | "
+        lines.append(f"| {rank} | {roi['roi_idx']} | {roi['region']} | {roi['network']} | "
                      f"{roi['circuit']} | {roi['signed_all']:+.6f} | "
                      f"{roi['signed_pos']:+.6f} | {roi['signed_neg']:+.6f} |")
 
