@@ -321,7 +321,53 @@ All four fixes applied together:
 
 Total: ~8 lines of new code in `models/CircuitMoE.py`.
 
-## 5. Next Steps
+## 5. Classical Dimension Reduction Analysis
+
+### Background
+
+All variational quantum models in this project use a single `nn.Linear` layer to project input features into quantum rotation angles before the sim14 ansatz. With 8 qubits and 2 ansatz layers, this produces `n_rots = 4 × 8 × 2 = 64` angles. There is no hidden layer or nonlinearity before the sigmoid — the linear projection is the sole classical bottleneck.
+
+### Per-Model Compression Comparison
+
+In SE, Cluster MoE, and Learned MoE, every expert sees all 180 ROIs:
+
+| Model | Expert Input | Projection | Compression Ratio |
+|-------|:---:|-----------|:---:|
+| Single Expert | 180 | `Linear(180, 64)` | 2.81:1 |
+| Cluster MoE (each expert) | 180 | `Linear(180, 64)` | 2.81:1 |
+| Learned MoE (each expert) | 180 | `Linear(180, 64)` | 2.81:1 |
+| Circuit MoE — DMN | 55 | `Linear(55, 64)` | 0.86:1 (expansion) |
+| Circuit MoE — Executive | 50 | `Linear(50, 64)` | 0.78:1 (expansion) |
+| Circuit MoE — Salience | 29 | `Linear(29, 64)` | 0.45:1 (expansion) |
+| Circuit MoE — SensoriMotor | 46 | `Linear(46, 64)` | 0.72:1 (expansion) |
+| Circuit MoE — Internal (2-expert) | 84 | `Linear(84, 64)` | 1.31:1 |
+| Circuit MoE — External (2-expert) | 96 | `Linear(96, 64)` | 1.50:1 |
+
+Circuit MoE is the only architecture that reduces the per-expert compression. All other quantum models use `Linear(180, 64)` regardless of routing or gating.
+
+### Structural Advantages of Circuit MoE
+
+1. **Per-expert compression is eliminated (4-expert) or reduced (2-expert).** In the 4-expert config, every expert expands its input (ratios < 1:1) — the linear projection is a feature transform, not a lossy bottleneck.
+
+2. **Total information bandwidth is K× higher.** The 4-expert model maps 180 ROIs into 4 × 64 = 256 total rotation angles, vs 64 in SE. Collective quantum processing capacity is 4× that of SE.
+
+3. **Simpler per-expert optimization.** Each expert's `Linear(n_rois, 64)` only encodes within-circuit correlations among functionally related ROIs, rather than all 180 cross-circuit relationships.
+
+### Empirical Results (v2 with quantum fixes)
+
+| Model | Quantum AUC | Classical AUC | C-Q Gap | Compression |
+|-------|:---:|:---:|:---:|:---:|
+| SE | 0.5769 | 0.6193 | 4.2 pts | 2.81:1 |
+| Circuit MoE 4-expert | 0.5764 | 0.6167 | 4.0 pts | <1:1 (expansion) |
+| Circuit MoE 2-expert | 0.5783 | 0.5987 | 2.0 pts | ~1.4:1 |
+
+All quantum models plateau at ~0.577. The reduced compression does not yield a measurable quantum AUC improvement, suggesting the bottleneck has shifted from classical compression to quantum expressivity or the ADHD classification ceiling itself.
+
+### Relationship to Contribution 4 (Bottleneck Hypothesis)
+
+Contribution 4 hypothesized that reducing pre-quantum compression would narrow the classical-quantum gap. The v1 results (before quantum fixes) rejected this — the 4-expert model had a 10.3 pt gap. After v2 fixes, the gap narrowed to 4.0 pts, showing that the v1 gap was an **optimization** bottleneck (vanishing gradients, cold start), not a compression bottleneck. The structural advantage of reduced compression is real but does not dominate performance in the current regime.
+
+## 6. Next Steps
 
 1. Implement the 4 fixes in a new model file (`models/CircuitMoE_v2.py`)
 2. Submit quantum 4-expert and 2-expert jobs with fixes

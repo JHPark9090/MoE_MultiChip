@@ -34,7 +34,7 @@ Quantum MoE replaces arbitrary index-based splitting with **neuroscience-guided 
 
 This addresses each limitation:
 
-**Within-circuit dependencies are preserved.** ROIs that belong to the same functional brain circuit are processed together by the same quantum expert. The DMN expert maintains entanglement between all DMN regions (mPFC, PCC, angular gyrus, temporal pole), preserving the within-network correlations that Feng et al. (2024) identified as the top biotype discriminator.
+**Within-circuit dependencies are preserved.** ROIs that belong to the same functional brain circuit are processed together by the same quantum expert. The DMN expert maintains entanglement between all DMN regions (mPFC, PCC, angular gyrus, temporal pole), preserving the within-network correlations. Feng et al. (2024) found that default mode and cognitive control regions exhibited the greatest involvement in distinguishing ADHD biotypes, highlighting the importance of preserving within-circuit connectivity structure.
 
 **Between-circuit information is recovered through learned gating.** Unlike Multi-Chip's simple averaging, the MoE gating network takes the full 180-ROI temporal mean as input and learns soft routing weights over experts. This classical gating network captures cross-circuit relationships (e.g., DMN-frontoparietal anti-correlation) while quantum experts specialize in within-circuit temporal dynamics. This is a principled division of labor: quantum circuits handle within-circuit entangled dynamics, classical gating handles between-circuit routing.
 
@@ -55,7 +55,7 @@ This addresses each limitation:
 
 ### Limitation
 
-Between-circuit quantum entanglement is still lost — the DMN expert's qubits cannot entangle with the Executive expert's qubits. If classification requires quantum correlations spanning multiple brain circuits simultaneously, MoE cannot capture this. However, the neuroscience literature suggests within-circuit dynamics carry the primary diagnostic signal (Feng 2024: within-DMN connectivity is the top biotype discriminator; Cortese 2012: ADHD dysfunction maps to identifiable network-level systems). The classical gating network provides a complementary mechanism for integrating cross-circuit information.
+Between-circuit quantum entanglement is still lost — the DMN expert's qubits cannot entangle with the Executive expert's qubits. If classification requires quantum correlations spanning multiple brain circuits simultaneously, MoE cannot capture this. However, the neuroscience literature suggests within-circuit dynamics carry substantial diagnostic signal (Feng 2024: default mode and cognitive control regions show the greatest involvement in biotype discrimination; Cortese 2012: ADHD dysfunction maps to identifiable network-level systems). The classical gating network provides a complementary mechanism for integrating cross-circuit information.
 
 ## Contribution 2: First Quantum MoE Framework for Neuroimaging
 
@@ -132,14 +132,73 @@ This means circuit specialization could specifically benefit quantum experts mor
 
 If Circuit MoE quantum achieves closer to Circuit MoE classical than SE quantum does to SE classical, this confirms the bottleneck reduction hypothesis.
 
+## Contribution 5: Reduced Reliance on Classical Dimension Reduction
+
+### The Classical Dimension Reduction Problem in Variational Quantum Circuits
+
+Variational quantum circuits require a fixed number of rotation angle inputs, determined by qubit count and ansatz depth. For the sim14 ansatz with 8 qubits and 2 layers, this is `4 × 8 × 2 = 64` rotation angles. When real-world data exceeds this dimensionality, a classical projection layer must compress the input before quantum processing:
+
+```
+Raw input (feature_dim) → nn.Linear(feature_dim, n_rots) → Sigmoid × 2π → rotation angles → quantum circuit
+```
+
+This `nn.Linear` is the **only** classical layer between the raw data and the quantum circuit — there is no hidden layer or nonlinearity before the sigmoid. Any information discarded by this projection is irrecoverable by the quantum circuit, regardless of its expressivity.
+
+### Comparison: All Models
+
+In SE, Cluster MoE, and Learned MoE, every expert sees all 180 ROIs and uses the same compression:
+
+| Model | Expert Input | Projection | Compression Ratio |
+|-------|:---:|-----------|:---:|
+| Single Expert | 180 ROIs | `Linear(180, 64)` | 2.81:1 |
+| Cluster MoE (each expert) | 180 ROIs | `Linear(180, 64)` | 2.81:1 |
+| Learned MoE (each expert) | 180 ROIs | `Linear(180, 64)` | 2.81:1 |
+| **Circuit MoE — DMN** | **55 ROIs** | **`Linear(55, 64)`** | **0.86:1 (expansion)** |
+| **Circuit MoE — Executive** | **50 ROIs** | **`Linear(50, 64)`** | **0.78:1 (expansion)** |
+| **Circuit MoE — Salience** | **29 ROIs** | **`Linear(29, 64)`** | **0.45:1 (expansion)** |
+| **Circuit MoE — SensoriMotor** | **46 ROIs** | **`Linear(46, 64)`** | **0.72:1 (expansion)** |
+
+Circuit MoE is the **only** architecture that reduces the per-expert input dimensionality. All other quantum models (SE, Cluster MoE, Learned MoE) use the identical `Linear(180, 64)` compression regardless of their routing or gating mechanisms.
+
+### Three Structural Advantages
+
+**1. Per-expert compression is eliminated (4-expert) or greatly reduced (2-expert).**
+
+In the 4-expert configuration, every expert *expands* rather than compresses — all compression ratios are below 1:1. The `Linear(n_rois, 64)` is a learned feature transform (basis change), not a lossy bottleneck. In the 2-expert configuration, the compression is mild: Internal `Linear(84, 64)` = 1.31:1, External `Linear(96, 64)` = 1.50:1 — both far less severe than the 2.81:1 of all-channel models.
+
+**2. Total information bandwidth is K× higher.**
+
+Across all 4 experts, the model maps 180 ROIs into 4 × 64 = 256 rotation angles, compared to 64 in the Single Expert. The collective quantum processing capacity is 4× that of SE, despite each expert using an identical 8-qubit circuit.
+
+**3. Each expert's projection is a simpler learning problem.**
+
+The DMN expert's `Linear(55, 64)` only needs to represent within-DMN correlations among 55 functionally related ROIs. The Single Expert's `Linear(180, 64)` must simultaneously encode within-circuit and cross-circuit relationships for all 180 ROIs into 64 dimensions — a harder optimization target.
+
+### Caveat: Gating Re-Compresses to 64D
+
+Expert outputs are combined via soft gating: `weighted = Σ gate_weight_i × expert_output_i → (B, 64)`. The final representation is 64-dimensional. However, this is a *task-optimized selection* from a 256D pool (4 × 64D expert outputs), not a universal compression of 180D raw input.
+
+### Empirical Evidence
+
+| Model | Quantum AUC (v2) | Compression per expert |
+|-------|:---:|:---:|
+| Q SE | 0.5769 | 2.81:1 |
+| Q Circuit MoE v2 2-expert | **0.5783** | ~1.4:1 |
+| Q Circuit MoE v2 4-expert | 0.5764 | <1:1 (expansion) |
+
+All quantum models plateau at ~0.577, so the reduced compression does not translate into a measurable performance gain for ADHD classification. This suggests the current bottleneck has shifted elsewhere — either quantum expressivity with 8 qubits is saturated, or the ADHD classification problem itself has a ceiling around 0.58 for quantum models at this data scale.
+
+**This contribution is structural, not contingent on classification performance.** Regardless of the AUC plateau, the architectural fact remains: quantum experts in Circuit MoE receive less-compressed inputs and collectively process more total rotation angles than any all-channel quantum model. This is a principled approach to the classical dimension reduction problem that applies to any variational quantum architecture on high-dimensional data.
+
 ## Summary of Novel Contributions
 
 | # | Contribution | Type | Status |
 |---|-------------|------|--------|
-| 1 | Domain-informed quantum circuit partitioning for spatio-temporal data, addressing Multi-Chip Ensemble limitations | Methodological | Implemented, results pending |
-| 2 | First quantum MoE framework for neuroimaging (soft gating, load balancing, expert specialization with quantum circuits) | Framework | Implemented, prior quantum MoE results available |
+| 1 | Domain-informed quantum circuit partitioning for spatio-temporal data, addressing Multi-Chip Ensemble limitations | Methodological | Implemented |
+| 2 | First quantum MoE framework for neuroimaging (soft gating, load balancing, expert specialization with quantum circuits) | Framework | Implemented |
 | 3 | 10x parameter efficiency of quantum vs classical experts within MoE | Empirical | Confirmed across ADHD, ASD, Sex phenotypes |
 | 4 | Circuit specialization reduces pre-quantum compression bottleneck | Hypothesis | Testable with pending Circuit MoE quantum results |
+| 5 | Reduced reliance on classical dimension reduction via circuit-specialized input splitting | Structural | Confirmed (per-expert expansion in 4-expert config) |
 
 ## References
 

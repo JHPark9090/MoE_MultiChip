@@ -75,10 +75,10 @@ The literature on biotypes (Feng: 2 biotypes; Pan: 3 biotypes) and the literatur
 
 Based on the literature, **4 ADHD-relevant circuit systems** are well-established:
 
-1. **DMN** — Nigg (2020), Koirala (2024), Feng (2024): DMN suppression failure, within-DMN connectivity differentiates biotypes
+1. **DMN** — Nigg (2020), Koirala (2024), Feng (2024): DMN suppression failure; default mode regions show greatest biotype involvement
 2. **Executive/Frontoparietal** — Nigg (2020), Koirala (2024), Cortese (2012): top-down executive dysfunction, frontoparietal hypoactivation
 3. **Salience/Affective** — Nigg (2020), Koirala (2024): emotional dysregulation, salience network dysfunction
-4. **Sensorimotor/Visual** — Cortese (2012), Feng (2024): somatomotor hyperactivation in children (26% of hyperactivated voxels), sensorimotor processes contribute to biotype discrimination
+4. **Sensorimotor/Visual** — Cortese (2012), Feng (2024): somatomotor hyperactivation in children (22% of hyperactivated voxels; 26% in comorbidity-free samples), sensorimotor processes contribute to biotype discrimination
 
 We test two configurations: **4-expert** (one per circuit) and **2-expert** (coarser Internal/External grouping).
 
@@ -101,10 +101,10 @@ Based on the Yeo 17-network mapping in `models/yeo17_networks.py`:
 
 | Expert | Circuit | Yeo17 Networks | ROIs | Neurobiological Basis |
 |--------|---------|---------------|------|----------------------|
-| 0 | DMN | DefaultA, DefaultB, DefaultC, TempPar | 55 | Nigg: self-regulation failures; Feng: within-DMN connectivity differentiates biotypes; Koirala: DMN suppression failure |
-| 1 | Executive Control | ContA, ContB, ContC, DorsAttnA, DorsAttnB | 50 | Nigg: top-down executive dysfunction; Feng: Cognitive Control network is top discriminator; Pan: Biotype 3 (inattention) maps to frontal; Cortese: frontoparietal hypoactivation |
+| 0 | DMN | DefaultA, DefaultB, DefaultC, TempPar | 55 | Nigg: self-regulation failures; Feng: default mode and cognitive control regions show greatest biotype involvement; Koirala: DMN suppression failure |
+| 1 | Executive Control | ContA, ContB, ContC, DorsAttnA, DorsAttnB | 50 | Nigg: top-down executive dysfunction; Feng: cognitive control regions show greatest biotype involvement alongside DM; Pan: Biotype 3 (inattention) maps to frontal; Cortese: frontoparietal hypoactivation |
 | 2 | Salience / Affective | SalVentAttnA, SalVentAttnB, Limbic_TempPole, Limbic_OFC | 29 | Nigg: emotional dysregulation dimension; Pan: Biotype 2 (hyperactivity) involves anterior cingulate (salience hub) |
-| 3 | Sensorimotor / Visual | VisCent, VisPeri, SomMotA, SomMotB | 46 | Cortese: somatomotor hyperactivation in children with ADHD (26% of hyperactivated voxels); Feng: SM-CC-CB and VI-SM connectivity patterns differentiate biotypes |
+| 3 | Sensorimotor / Visual | VisCent, VisPeri, SomMotA, SomMotB | 46 | Cortese: somatomotor hyperactivation in children with ADHD (22% of hyperactivated voxels; 26% in comorbidity-free samples); Feng: SM-CC-CB and VI-SM connectivity patterns differentiate biotypes |
 
 All 180 ROIs are covered across the 4 experts — no ROIs are discarded.
 
