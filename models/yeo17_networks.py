@@ -109,17 +109,43 @@ ADHD_CIRCUITS_2 = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Arbitrary (contiguous index) splits — baselines for ablation
+# ---------------------------------------------------------------------------
+# Same number of ROIs per expert as the neuroscience configs, but assigned
+# by contiguous index order (0-54, 55-104, ...) instead of by brain circuit.
+
+ARBITRARY_SPLIT_4 = {
+    "Block_A": list(range(0, 55)),      # 55 ROIs (matches DMN)
+    "Block_B": list(range(55, 105)),     # 50 ROIs (matches Executive)
+    "Block_C": list(range(105, 134)),    # 29 ROIs (matches Salience)
+    "Block_D": list(range(134, 180)),    # 46 ROIs (matches SensoriMotor)
+}
+
+ARBITRARY_SPLIT_2 = {
+    "Block_A": list(range(0, 84)),       # 84 ROIs (matches Internal)
+    "Block_B": list(range(84, 180)),     # 96 ROIs (matches External)
+}
+
+
 def get_circuit_config(name):
     """Return a circuit configuration by name.
 
     Args:
         name: "adhd_3" (4 experts: DMN, Executive, Salience, SensoriMotor)
-              or "adhd_2" (2 experts: Internal, External)
+              "adhd_2" (2 experts: Internal, External)
+              "arbitrary_4" (4 experts: contiguous index blocks, same sizes as adhd_3)
+              "arbitrary_2" (2 experts: contiguous index blocks, same sizes as adhd_2)
 
     Returns:
-        dict: circuit_name -> list of Yeo17 network names
+        dict: circuit_name -> list of Yeo17 network names OR list of ROI indices
     """
-    configs = {"adhd_3": ADHD_CIRCUITS_3, "adhd_2": ADHD_CIRCUITS_2}
+    configs = {
+        "adhd_3": ADHD_CIRCUITS_3,
+        "adhd_2": ADHD_CIRCUITS_2,
+        "arbitrary_4": ARBITRARY_SPLIT_4,
+        "arbitrary_2": ARBITRARY_SPLIT_2,
+    }
     if name not in configs:
         raise ValueError(f"Unknown circuit config: {name!r}. Choose from {list(configs)}")
     return configs[name]
@@ -130,16 +156,22 @@ def get_circuit_roi_indices(circuit_config):
 
     Args:
         circuit_config: dict of circuit_name -> list of Yeo17 network names
+                        OR dict of circuit_name -> list of ROI indices (arbitrary splits)
 
     Returns:
         list of (circuit_name, roi_indices) tuples, ordered consistently
     """
     result = []
-    for circuit_name, network_names in circuit_config.items():
-        roi_indices = []
-        for net_name in network_names:
-            roi_indices.extend(YEO17_HCP180[net_name])
-        roi_indices.sort()
+    for circuit_name, values in circuit_config.items():
+        if isinstance(values[0], str):
+            # Neuroscience config: values are network names
+            roi_indices = []
+            for net_name in values:
+                roi_indices.extend(YEO17_HCP180[net_name])
+            roi_indices.sort()
+        else:
+            # Arbitrary config: values are already ROI indices
+            roi_indices = sorted(values)
         result.append((circuit_name, roi_indices))
     return result
 
