@@ -161,6 +161,7 @@ def analyze_gradient_saliency(model, test_loader, device, circuit_config_name):
     """
     model.eval()
     all_saliency = []
+    all_signed_saliency = []
     all_labels = []
 
     for batch in tqdm(test_loader, desc="Gradient saliency", leave=False):
@@ -174,15 +175,23 @@ def analyze_gradient_saliency(model, test_loader, device, circuit_config_name):
         # We use sum so each sample contributes independently
         logits.sum().backward()
 
-        # Saliency = mean absolute gradient over time dimension
+        # Absolute saliency: magnitude of influence (how much this ROI matters)
         # data.grad: (B, T, 180) -> mean over T -> (B, 180)
         saliency = data.grad.abs().mean(dim=1).detach().cpu().numpy()
         all_saliency.append(saliency)
+
+        # Signed saliency: direction of influence (+/- relationship with ADHD)
+        # Positive = increasing this ROI's signal pushes prediction toward ADHD+
+        # Negative = increasing this ROI's signal pushes prediction toward ADHD-
+        signed = data.grad.mean(dim=1).detach().cpu().numpy()
+        all_signed_saliency.append(signed)
+
         all_labels.append(target.cpu().numpy())
 
         data.requires_grad_(False)
 
     saliency = np.concatenate(all_saliency, axis=0)  # (N, 180)
+    signed_saliency = np.concatenate(all_signed_saliency, axis=0)  # (N, 180)
     labels = np.concatenate(all_labels, axis=0)
 
     pos_mask = labels == 1
@@ -191,6 +200,10 @@ def analyze_gradient_saliency(model, test_loader, device, circuit_config_name):
     saliency_pos = saliency[pos_mask].mean(axis=0)  # (180,)
     saliency_neg = saliency[neg_mask].mean(axis=0)  # (180,)
     saliency_all = saliency.mean(axis=0)
+
+    signed_pos = signed_saliency[pos_mask].mean(axis=0)  # (180,)
+    signed_neg = signed_saliency[neg_mask].mean(axis=0)  # (180,)
+    signed_all = signed_saliency.mean(axis=0)
 
     # Group by network
     roi_to_net = build_roi_to_network_map()
@@ -202,6 +215,9 @@ def analyze_gradient_saliency(model, test_loader, device, circuit_config_name):
             "adhd_pos_mean": float(saliency_pos[indices].mean()),
             "adhd_neg_mean": float(saliency_neg[indices].mean()),
             "diff": float(saliency_pos[indices].mean() - saliency_neg[indices].mean()),
+            "signed_all": float(signed_all[indices].mean()),
+            "signed_pos": float(signed_pos[indices].mean()),
+            "signed_neg": float(signed_neg[indices].mean()),
             "n_rois": len(indices),
         }
 
@@ -216,6 +232,9 @@ def analyze_gradient_saliency(model, test_loader, device, circuit_config_name):
             "adhd_pos_mean": float(saliency_pos[indices].mean()),
             "adhd_neg_mean": float(saliency_neg[indices].mean()),
             "diff": float(saliency_pos[indices].mean() - saliency_neg[indices].mean()),
+            "signed_all": float(signed_all[indices].mean()),
+            "signed_pos": float(signed_pos[indices].mean()),
+            "signed_neg": float(signed_neg[indices].mean()),
             "n_rois": len(indices),
         }
 
@@ -230,6 +249,9 @@ def analyze_gradient_saliency(model, test_loader, device, circuit_config_name):
             "saliency_pos": float(saliency_pos[roi_idx]),
             "saliency_neg": float(saliency_neg[roi_idx]),
             "diff": float(saliency_pos[roi_idx] - saliency_neg[roi_idx]),
+            "signed_all": float(signed_all[roi_idx]),
+            "signed_pos": float(signed_pos[roi_idx]),
+            "signed_neg": float(signed_neg[roi_idx]),
         })
     roi_saliency.sort(key=lambda x: x["saliency_all"], reverse=True)
 
@@ -239,6 +261,8 @@ def analyze_gradient_saliency(model, test_loader, device, circuit_config_name):
         "roi_saliency": roi_saliency,
         "saliency_pos_raw": saliency_pos,
         "saliency_neg_raw": saliency_neg,
+        "signed_pos_raw": signed_pos,
+        "signed_neg_raw": signed_neg,
     }
 
 
@@ -358,11 +382,11 @@ def generate_report(gate_results, saliency_results, weight_results,
 
     lines.append(f"")
 
-    # --- Circuit Level: Gradient Saliency ---
-    lines.append(f"## 2. Circuit-Level Analysis: Gradient Saliency")
+    # --- Circuit Level: Gradient Saliency (Absolute) ---
+    lines.append(f"## 2. Circuit-Level Analysis: Gradient Saliency (Absolute)")
     lines.append(f"")
-    lines.append(f"Gradient saliency measures how much each ROI's input signal "
-                 f"influences the model output. Higher saliency = more influential for classification.")
+    lines.append(f"Absolute gradient saliency measures how much each ROI's input signal "
+                 f"influences the model output (magnitude only). Higher = more influential.")
     lines.append(f"")
     lines.append(f"| Circuit | Saliency (all) | ADHD+ | ADHD- | Diff | n_ROIs |")
     lines.append(f"|---------|:--------------:|:-----:|:-----:|:----:|:------:|")
@@ -373,21 +397,54 @@ def generate_report(gate_results, saliency_results, weight_results,
 
     lines.append(f"")
 
-    # --- Network Level ---
+    # --- Circuit Level: Signed Gradient Saliency ---
+    lines.append(f"## 2b. Circuit-Level Analysis: Signed Gradient Saliency (Direction)")
+    lines.append(f"")
+    lines.append(f"Signed gradient saliency preserves the direction of influence. "
+                 f"**Positive** = increasing this circuit's signal pushes the prediction "
+                 f"toward ADHD+. **Negative** = pushes toward ADHD-.")
+    lines.append(f"")
+    lines.append(f"| Circuit | Signed (all) | ADHD+ | ADHD- | Direction | n_ROIs |")
+    lines.append(f"|---------|:------------:|:-----:|:-----:|:---------:|:------:|")
+
+    for name, s in saliency_results["circuit_saliency"].items():
+        direction = "positive (+ADHD)" if s["signed_all"] > 0 else "negative (-ADHD)"
+        lines.append(f"| {name} | {s['signed_all']:+.6f} | {s['signed_pos']:+.6f} | "
+                     f"{s['signed_neg']:+.6f} | {direction} | {s['n_rois']} |")
+
+    lines.append(f"")
+
+    # --- Network Level: Absolute ---
     lines.append(f"## 3. Network-Level Analysis: Gradient Saliency by Yeo-17 Network")
     lines.append(f"")
-    lines.append(f"Saliency aggregated by Yeo-17 network, showing which sub-networks "
-                 f"within each circuit contribute most.")
+    lines.append(f"Absolute saliency aggregated by Yeo-17 network (magnitude of influence).")
     lines.append(f"")
     lines.append(f"| Network | Saliency (all) | ADHD+ | ADHD- | Diff | n_ROIs |")
     lines.append(f"|---------|:--------------:|:-----:|:-----:|:----:|:------:|")
 
-    # Sort by overall saliency
     sorted_nets = sorted(saliency_results["network_saliency"].items(),
                         key=lambda x: x[1]["all_mean"], reverse=True)
     for net_name, s in sorted_nets:
         lines.append(f"| {net_name} | {s['all_mean']:.6f} | {s['adhd_pos_mean']:.6f} | "
                      f"{s['adhd_neg_mean']:.6f} | {s['diff']:+.6f} | {s['n_rois']} |")
+
+    lines.append(f"")
+
+    # --- Network Level: Signed ---
+    lines.append(f"## 3b. Network-Level Analysis: Signed Gradient Saliency (Direction)")
+    lines.append(f"")
+    lines.append(f"Signed saliency by Yeo-17 network. Positive = network activity positively "
+                 f"associated with ADHD prediction. Negative = negatively associated.")
+    lines.append(f"")
+    lines.append(f"| Network | Signed (all) | ADHD+ | ADHD- | Direction | n_ROIs |")
+    lines.append(f"|---------|:------------:|:-----:|:-----:|:---------:|:------:|")
+
+    sorted_nets_signed = sorted(saliency_results["network_saliency"].items(),
+                                key=lambda x: x[1]["signed_all"], reverse=True)
+    for net_name, s in sorted_nets_signed:
+        direction = "+ADHD" if s["signed_all"] > 0 else "-ADHD"
+        lines.append(f"| {net_name} | {s['signed_all']:+.6f} | {s['signed_pos']:+.6f} | "
+                     f"{s['signed_neg']:+.6f} | {direction} | {s['n_rois']} |")
 
     lines.append(f"")
 
@@ -425,8 +482,8 @@ def generate_report(gate_results, saliency_results, weight_results,
                          f"{rw['weight_norm']:.4f} |")
         lines.append(f"")
 
-    # --- ROI Level ---
-    lines.append(f"## 5. ROI-Level Analysis: Top 20 ROIs by Gradient Saliency")
+    # --- ROI Level: Absolute ---
+    lines.append(f"## 5. ROI-Level Analysis: Top 20 ROIs by Absolute Saliency")
     lines.append(f"")
     lines.append(f"| Rank | ROI | Network | Circuit | Saliency | ADHD+ | ADHD- | Diff |")
     lines.append(f"|:----:|:---:|---------|---------|:--------:|:-----:|:-----:|:----:|")
@@ -439,10 +496,10 @@ def generate_report(gate_results, saliency_results, weight_results,
 
     lines.append(f"")
 
-    # --- ROI Level: Largest ADHD+ vs ADHD- differences ---
-    lines.append(f"## 6. ROI-Level Analysis: Largest ADHD+ vs ADHD- Saliency Differences")
+    # --- ROI Level: Largest ADHD+ vs ADHD- absolute differences ---
+    lines.append(f"## 6. ROI-Level Analysis: Largest ADHD+ vs ADHD- Absolute Saliency Differences")
     lines.append(f"")
-    lines.append(f"ROIs where gradient saliency differs most between classes. "
+    lines.append(f"ROIs where absolute gradient saliency differs most between classes. "
                  f"Positive diff = more salient for ADHD+.")
     lines.append(f"")
 
@@ -454,6 +511,44 @@ def generate_report(gate_results, saliency_results, weight_results,
         lines.append(f"| {rank} | {roi['roi_idx']} | {roi['network']} | "
                      f"{roi['circuit']} | {roi['diff']:+.6f} | "
                      f"{roi['saliency_pos']:.6f} | {roi['saliency_neg']:.6f} |")
+
+    lines.append(f"")
+
+    # --- ROI Level: Signed Saliency (Direction) ---
+    lines.append(f"## 7. ROI-Level Analysis: Signed Gradient Saliency (Direction)")
+    lines.append(f"")
+    lines.append(f"Signed saliency shows the direction of each ROI's relationship with ADHD. "
+                 f"**Positive** = increasing this ROI's signal pushes prediction toward ADHD+. "
+                 f"**Negative** = pushes toward ADHD-.")
+    lines.append(f"")
+
+    # Top 10 most positive (pro-ADHD)
+    lines.append(f"### Top 10 ROIs with Strongest Positive (+ADHD) Relationship")
+    lines.append(f"")
+    lines.append(f"| Rank | ROI | Network | Circuit | Signed (all) | Signed ADHD+ | Signed ADHD- |")
+    lines.append(f"|:----:|:---:|---------|---------|:------------:|:------------:|:------------:|")
+
+    sorted_positive = sorted(saliency_results["roi_saliency"],
+                             key=lambda x: x["signed_all"], reverse=True)
+    for rank, roi in enumerate(sorted_positive[:10], 1):
+        lines.append(f"| {rank} | {roi['roi_idx']} | {roi['network']} | "
+                     f"{roi['circuit']} | {roi['signed_all']:+.6f} | "
+                     f"{roi['signed_pos']:+.6f} | {roi['signed_neg']:+.6f} |")
+
+    lines.append(f"")
+
+    # Top 10 most negative (anti-ADHD)
+    lines.append(f"### Top 10 ROIs with Strongest Negative (-ADHD) Relationship")
+    lines.append(f"")
+    lines.append(f"| Rank | ROI | Network | Circuit | Signed (all) | Signed ADHD+ | Signed ADHD- |")
+    lines.append(f"|:----:|:---:|---------|---------|:------------:|:------------:|:------------:|")
+
+    sorted_negative = sorted(saliency_results["roi_saliency"],
+                             key=lambda x: x["signed_all"])
+    for rank, roi in enumerate(sorted_negative[:10], 1):
+        lines.append(f"| {rank} | {roi['roi_idx']} | {roi['network']} | "
+                     f"{roi['circuit']} | {roi['signed_all']:+.6f} | "
+                     f"{roi['signed_pos']:+.6f} | {roi['signed_neg']:+.6f} |")
 
     lines.append(f"")
 
@@ -514,7 +609,10 @@ def main():
         sample_size=sample_sz,
     )
     test_loader = transpose_fmri_loaders(test_loader, args.batch_size)
-    n_samples, n_channels, n_timesteps = input_dim
+    # input_dim from load_abcd_fmri is (N, T, C) = (N, 363, 180)
+    # After transpose_fmri_loaders, data is (N, C, T) = (N, 180, 363)
+    # but input_dim still reports the original (N, T, C) shape
+    n_samples, n_timesteps, n_channels = input_dim
     print(f"Test set: {n_channels} channels, {n_timesteps} timesteps")
 
     # --- Reconstruct model ---
@@ -570,23 +668,26 @@ def main():
         model, test_loader, device, circuit_config,
     )
 
-    print("\n  Circuit-level saliency:")
+    print("\n  Circuit-level saliency (absolute | signed):")
     for name, s in saliency_results["circuit_saliency"].items():
-        print(f"    {name:20s}: all={s['all_mean']:.6f}, "
-              f"ADHD+={s['adhd_pos_mean']:.6f}, diff={s['diff']:+.6f}")
+        direction = "+ADHD" if s["signed_all"] > 0 else "-ADHD"
+        print(f"    {name:20s}: abs={s['all_mean']:.6f}, "
+              f"signed={s['signed_all']:+.6f} ({direction})")
 
-    print("\n  Top 5 networks by saliency:")
+    print("\n  Top 5 networks by absolute saliency:")
     sorted_nets = sorted(saliency_results["network_saliency"].items(),
                         key=lambda x: x[1]["all_mean"], reverse=True)
     for net_name, s in sorted_nets[:5]:
-        print(f"    {net_name:20s}: all={s['all_mean']:.6f}, "
-              f"diff={s['diff']:+.6f}")
+        direction = "+ADHD" if s["signed_all"] > 0 else "-ADHD"
+        print(f"    {net_name:20s}: abs={s['all_mean']:.6f}, "
+              f"signed={s['signed_all']:+.6f} ({direction})")
 
-    print("\n  Top 5 ROIs by saliency:")
+    print("\n  Top 5 ROIs by absolute saliency:")
     for roi in saliency_results["roi_saliency"][:5]:
+        direction = "+ADHD" if roi["signed_all"] > 0 else "-ADHD"
         print(f"    ROI {roi['roi_idx']:3d} ({roi['network']:20s}, "
-              f"{roi['circuit']:15s}): {roi['saliency_all']:.6f}, "
-              f"diff={roi['diff']:+.6f}")
+              f"{roi['circuit']:15s}): abs={roi['saliency_all']:.6f}, "
+              f"signed={roi['signed_all']:+.6f} ({direction})")
 
     print("\n" + "=" * 70)
     print("Analysis 3: Input Projection Weights")
@@ -611,6 +712,12 @@ def main():
     )
 
     # --- Save raw results as JSON ---
+    # Separate top ROIs by signed direction for JSON
+    sorted_positive = sorted(saliency_results["roi_saliency"],
+                             key=lambda x: x["signed_all"], reverse=True)
+    sorted_negative = sorted(saliency_results["roi_saliency"],
+                             key=lambda x: x["signed_all"])
+
     json_results = {
         "model_type": model_type,
         "circuit_config": circuit_config,
@@ -619,6 +726,8 @@ def main():
         "circuit_saliency": saliency_results["circuit_saliency"],
         "network_saliency": saliency_results["network_saliency"],
         "roi_saliency_top50": saliency_results["roi_saliency"][:50],
+        "roi_signed_top20_positive": sorted_positive[:20],
+        "roi_signed_top20_negative": sorted_negative[:20],
         "input_weight_analysis": {
             name: {
                 "network_summary": wr["network_summary"],

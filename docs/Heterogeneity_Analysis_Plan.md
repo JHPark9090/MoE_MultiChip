@@ -1,7 +1,7 @@
 # ADHD Heterogeneity Analysis via Circuit MoE Learned Representations
 
-**Date**: 2026-03-07
-**Status**: Analysis script implemented (`analyze_heterogeneity.py`), not yet run.
+**Date**: 2026-03-07 (updated 2026-03-07)
+**Status**: Classical models submitted (job 49772111). Quantum models ready (`scripts/run_heterogeneity_quantum.sh`).
 
 ## Motivation
 
@@ -108,18 +108,21 @@ Subject A is "DMN/Salience-dominant" and Subject B is "Executive/SensoriMotor-do
 
 ### What SE Can Do Instead
 
-SE has no gating network, so there is no direct equivalent. The closest approximation is to compute gradient saliency per ROI, then aggregate by circuit:
+SE has no gating network, so there is no direct equivalent. The closest approximation is to compute gradient saliency per ROI (absolute or signed), then aggregate by circuit:
 
 ```
-saliency = |dOutput/dInput|.mean(dim=time)   # (B, 180) — per-subject, per-ROI
-dmn_score = saliency[:, dmn_roi_indices].mean(dim=1)      # (B,)
-exec_score = saliency[:, exec_roi_indices].mean(dim=1)    # (B,)
-sal_score = saliency[:, sal_roi_indices].mean(dim=1)      # (B,)
-sm_score = saliency[:, sm_roi_indices].mean(dim=1)        # (B,)
-circuit_profile = stack([dmn, exec, sal, sm])              # (B, 4)
+# Absolute: magnitude of circuit importance
+abs_saliency = |dOutput/dInput|.mean(dim=time)   # (B, 180)
+dmn_abs = abs_saliency[:, dmn_roi_indices].mean(dim=1)      # (B,)
+
+# Signed: direction of circuit relationship (+ADHD / -ADHD)
+signed_saliency = (dOutput/dInput).mean(dim=time)   # (B, 180)
+dmn_signed = signed_saliency[:, dmn_roi_indices].mean(dim=1)  # (B,)
+
+circuit_profile = stack([dmn, exec, sal, sm])  # (B, 4) — either absolute or signed
 ```
 
-This produces a 4D circuit profile per subject, but it is a post-hoc aggregation of gradient saliency — not a learned routing decision. The SE model's `Linear(180, 64)` does not respect circuit boundaries, so the per-circuit saliency scores may reflect cross-circuit weight interactions rather than genuine circuit-specific sensitivity.
+This produces a 4D circuit profile per subject (with direction if using signed saliency), but it is a post-hoc aggregation of gradient saliency — not a learned routing decision. The SE model's `Linear(180, 64)` does not respect circuit boundaries, so the per-circuit saliency scores may reflect cross-circuit weight interactions rather than genuine circuit-specific sensitivity.
 
 ### Analysis Method
 
@@ -190,39 +193,51 @@ Expert output norms reveal which circuits produce the most distinctive represent
 - If Cluster 0 has high DMN expert norm and low SensoriMotor expert norm, this subtype is characterized by strong DMN-derived features — the model found rich, discriminative temporal patterns in their DMN activity
 - If two clusters have similar gate weights but different expert output vectors, the heterogeneity lies *within* the circuit representations, not in circuit routing — a finer-grained distinction than Level 1 can capture
 
-## Level 3: ROI-Level Heterogeneity (180D Importance Scores)
+## Level 3: ROI-Level Heterogeneity (180D Importance Scores — Magnitude + Direction)
 
 ### What It Captures
 
-For each subject, we compute a 180-dimensional importance score vector that measures how much each brain ROI contributes to the model's internal representation:
+For each subject, we compute two complementary 180-dimensional score vectors:
 
+**Absolute importance** — how much each ROI contributes (magnitude):
 ```
 For each expert i:
     W_i = expert_i.input_projection.weight    # (H, n_rois_i)
     w_norms_i = L2_norm(W_i, axis=0)          # (n_rois_i,) — learned weight magnitude per ROI
-    x_magnitude = mean(|x_subset|, dim=time)  # (B, n_rois_i) — input activation per ROI
-    roi_importance_i = x_magnitude × w_norms_i  # (B, n_rois_i) — subject-specific ROI importance
+    x_magnitude = mean(|x_subset|, dim=time)  # (B, n_rois_i) — input activation magnitude
+    roi_importance_i = x_magnitude × w_norms_i  # (B, n_rois_i) — magnitude only
 
-    # Map back to global ROI indices
     roi_scores[:, global_indices] = roi_importance_i
 ```
 
-This produces a (B, 180) matrix where `roi_scores[subject, roi]` quantifies how much that ROI contributes to the model's representation for that specific subject. The score combines two factors:
+**Signed importance** — the direction of each ROI's relationship (positive/negative):
+```
+For each expert i:
+    x_signed = mean(x_subset, dim=time)        # (B, n_rois_i) — preserves sign
+    roi_signed_i = x_signed × w_norms_i        # (B, n_rois_i) — direction preserved
 
+    signed_roi_scores[:, global_indices] = roi_signed_i
+```
+
+This produces two (B, 180) matrices:
+- `roi_scores[subject, roi]`: magnitude of ROI contribution (always positive)
+- `signed_roi_scores[subject, roi]`: direction of ROI contribution (positive = ROI activation positively associated with the model's learned representation; negative = negatively associated)
+
+Both scores combine two factors:
 - **Learned weight norms** (`w_norms`): what the model learned to attend to during training (static across subjects)
-- **Input magnitude** (`x_magnitude`): how active that ROI is for this specific subject (varies across subjects)
+- **Input activation** (absolute or signed): how active that ROI is for this specific subject (varies across subjects)
 
-Their product captures subject-specific, model-informed ROI importance.
+Their product captures subject-specific, model-informed ROI importance with direction.
 
 ### What SE Can Do Instead
 
 SE can produce per-subject, per-ROI importance through several methods:
 
-1. **Gradient saliency**: `|dOutput/dInput|` averaged over time → (N, 180). Measures output sensitivity to each ROI's input. Available for both classical and quantum SE.
+1. **Gradient saliency** (absolute and signed): Absolute `|dOutput/dInput|` provides magnitude; signed `dOutput/dInput` provides direction (+ADHD / -ADHD). Both averaged over time → (N, 180). Available for both classical and quantum SE.
 
-2. **Input projection importance**: Same `||W[:, roi]||_2 × |x[:, roi]|` approach using SE's `Linear(180, 64)`. The weight norms reflect learned per-ROI importance, and input magnitude provides subject specificity. Structurally identical to Circuit MoE's method, but uses one projection covering all 180 ROIs instead of circuit-specific projections.
+2. **Input projection importance** (absolute and signed): Absolute `||W[:, roi]||_2 × |x[:, roi]|` provides magnitude; signed `||W[:, roi]||_2 × x[:, roi]` preserves direction. Structurally identical to Circuit MoE's method, but uses one projection covering all 180 ROIs instead of circuit-specific projections.
 
-3. **SHAP values**: Model-agnostic attribution. KernelSHAP or DeepSHAP can produce per-subject, per-ROI Shapley values. More principled than gradient saliency (satisfies completeness, symmetry, null player axioms) but computationally expensive.
+3. **SHAP values**: Model-agnostic attribution. KernelSHAP or DeepSHAP can produce per-subject, per-ROI Shapley values with both magnitude and direction (positive SHAP = pushes toward ADHD+, negative SHAP = pushes toward ADHD-). More principled than gradient saliency (satisfies completeness, symmetry, null player axioms) but computationally expensive.
 
 4. **Attention weights**: For classical SE only. The `TransformerEncoderLayer` contains `nn.MultiheadAttention`, which can return attention weight matrices via `need_weights=True`. These are (N, nhead, T, T) — per-subject temporal attention patterns. These can be analyzed per-head or averaged, but they capture temporal (not spatial/ROI) importance.
 
@@ -230,22 +245,26 @@ All of these produce per-subject 180D vectors (or higher-dimensional attention t
 
 ### Analysis Method
 
-1. **Extract** per-subject ROI importance scores → (N_adhd, 180)
-2. **Cluster** using k-means on the 180D space
+1. **Extract** per-subject ROI importance scores (absolute + signed) → (N_adhd, 180) each
+2. **Cluster** using k-means on the absolute 180D space
 3. **Characterize** each cluster by:
-   - Top 10 ROIs by mean importance score
-   - Network-level aggregation (mean score per Yeo-17 network)
+   - Top 10 ROIs by mean absolute importance score, with signed direction (+ADHD / -ADHD)
+   - Top 5 ROIs with strongest positive (+ADHD) signed scores
+   - Top 5 ROIs with strongest negative (-ADHD) signed scores
+   - Network-level aggregation: both absolute importance and signed direction per Yeo-17 network
 4. **Cross-level concordance**: ARI with Level 1 and Level 2 clusters
 
 ### Neurobiological Interpretation
 
-ROI-level clustering can reveal spatially specific subtypes:
+ROI-level clustering with directional information can reveal spatially specific subtypes with signed relationships:
 
-- **Cluster with high PCC/angular gyrus importance**: posterior DMN subtype, consistent with Castellanos & Proal (2012) who identified PCC as a hub of ADHD-related DMN dysfunction
-- **Cluster with high DLPFC/FEF importance**: executive control subtype, consistent with frontoparietal hypoactivation in ADHD (Cortese 2012)
-- **Cluster with high insula/ACC importance**: salience processing subtype, consistent with anterior insula's role in ADHD's attentional deficits
+- **Cluster with high PCC/angular gyrus importance and positive signed scores**: posterior DMN hyperactivation subtype — these subjects' ADHD classification is driven by *increased* DMN activity, consistent with DMN suppression failure (Castellanos & Proal 2012)
+- **Cluster with high DLPFC/FEF importance and negative signed scores**: executive control hypoactivation subtype — ADHD classification driven by *decreased* frontoparietal activity, consistent with Cortese (2012)
+- **Cluster with mixed positive and negative signed scores across circuits**: distributed dysfunction subtype — ADHD classification depends on a combination of regional hyperactivation and hypoactivation
 
-This level provides the spatial specificity needed to connect model-derived subtypes to the neuroanatomy literature.
+The signed scores add a critical dimension to subtyping. Two clusters might both show high importance for DMN ROIs, but differ in direction: one characterized by DMN hyperactivation (positive signed) and another by DMN hypoactivation (negative signed). Without direction, these would appear identical.
+
+This level provides the spatial specificity and directional information needed to connect model-derived subtypes to the neuroanatomy literature.
 
 ## Cross-Level Integration
 
@@ -290,13 +309,18 @@ Usage:
 ```
 
 **Outputs per model:**
-- `heterogeneity_report.md` — formatted markdown with cluster profiles and cross-level concordance
-- `heterogeneity_results.json` — raw numerical results (cluster assignments, silhouette scores, ARI values)
-- `subject_representations.npz` — per-subject arrays (gate weights, expert outputs, ROI scores, labels, cluster IDs) for downstream analysis
+- `heterogeneity_report.md` — formatted markdown with cluster profiles (magnitude + direction), per-cluster positive/negative ROIs, signed network scores, and cross-level concordance
+- `heterogeneity_results.json` — raw numerical results (cluster assignments, silhouette scores, ARI values, signed scores per cluster)
+- `subject_representations.npz` — per-subject arrays (gate weights, expert outputs, ROI scores, signed ROI scores, labels, cluster IDs) for downstream analysis
 
-### SLURM: `scripts/run_heterogeneity_analysis.sh`
+### SLURM Scripts
 
-Runs all 4 trained models (classical/quantum × 4-expert/2-expert). Configurable cluster count via `N_CLUSTERS` environment variable (default: 3).
+| Script | Models | Resource | Time |
+|--------|--------|----------|------|
+| `scripts/run_heterogeneity_classical.sh` | Classical 4-expert + 2-expert | GPU (`m4807_g`) | 1h |
+| `scripts/run_heterogeneity_quantum.sh` | Quantum v2 4-expert + 2-expert | CPU only (`m4807`) | 2h |
+
+Classical models use GPU for faster forward pass. Quantum models use CPU only because PennyLane's `default.qubit` simulator is CPU-bound. Configurable cluster count via `N_CLUSTERS` environment variable (default: 3).
 
 ## Models to Analyze
 

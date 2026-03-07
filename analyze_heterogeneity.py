@@ -98,7 +98,10 @@ def load_model_and_data(args):
         sample_size=sample_sz,
     )
     test_loader = transpose_fmri_loaders(test_loader, args.batch_size)
-    n_samples, n_channels, n_timesteps = input_dim
+    # input_dim from load_abcd_fmri is (N, T, C) = (N, 363, 180)
+    # After transpose_fmri_loaders, data is (N, C, T) = (N, 180, 363)
+    # but input_dim still reports the original (N, T, C) shape
+    n_samples, n_timesteps, n_channels = input_dim
     print(f"Test set: {n_channels} channels, {n_timesteps} timesteps")
 
     # Reconstruct model
@@ -253,7 +256,7 @@ def extract_roi_activations(model, test_loader, device):
 
     if config_name is None:
         print("  Warning: Could not infer circuit config. Skipping ROI-level analysis.")
-        return None, None
+        return None, None, None
 
     config = get_circuit_config(config_name)
     circuit_roi_list = get_circuit_roi_indices(config)
@@ -272,6 +275,7 @@ def extract_roi_activations(model, test_loader, device):
         expert_weight_norms.append(np.linalg.norm(W, axis=0))
 
     all_roi_scores = []
+    all_signed_roi_scores = []
     all_labels = []
 
     with torch.no_grad():
@@ -281,6 +285,7 @@ def extract_roi_activations(model, test_loader, device):
             B = data.size(0)
 
             roi_scores = np.zeros((B, 180), dtype=np.float32)
+            signed_roi_scores = np.zeros((B, 180), dtype=np.float32)
 
             for i, expert in enumerate(model.experts):
                 roi_idx = getattr(model, f"roi_idx_{i}")
@@ -290,26 +295,31 @@ def extract_roi_activations(model, test_loader, device):
                     continue
 
                 w_norms = expert_weight_norms[i]  # (n_rois_i,)
-                _, _, roi_indices = circuit_roi_list[i][0], circuit_roi_list[i][1], circuit_roi_list[i][1]
 
-                # Per-subject activation magnitude: mean over time of L2 norm
-                # x_subset: (B, T, n_rois_i)
-                # We want per-ROI importance: use input magnitude * weight norm
-                # Simple approach: mean absolute input per ROI * weight norm
+                # Absolute importance: |input| * weight_norm (magnitude only)
                 input_magnitude = x_subset.abs().mean(dim=1).cpu().numpy()  # (B, n_rois_i)
                 roi_importance = input_magnitude * w_norms[np.newaxis, :]  # (B, n_rois_i)
+
+                # Signed importance: input_mean * weight_norm (preserves direction)
+                # Positive = this ROI has positive mean activation scaled by weight
+                # Negative = this ROI has negative mean activation scaled by weight
+                input_signed = x_subset.mean(dim=1).cpu().numpy()  # (B, n_rois_i)
+                roi_signed = input_signed * w_norms[np.newaxis, :]  # (B, n_rois_i)
 
                 # Map back to global ROI indices
                 global_indices = circuit_roi_list[i][1]
                 for local_idx, global_idx in enumerate(global_indices):
                     roi_scores[:, global_idx] = roi_importance[:, local_idx]
+                    signed_roi_scores[:, global_idx] = roi_signed[:, local_idx]
 
             all_roi_scores.append(roi_scores)
+            all_signed_roi_scores.append(signed_roi_scores)
             all_labels.append(target.cpu().numpy())
 
     roi_scores = np.concatenate(all_roi_scores, axis=0)  # (N, 180)
+    signed_roi_scores = np.concatenate(all_signed_roi_scores, axis=0)  # (N, 180)
     labels = np.concatenate(all_labels, axis=0)
-    return roi_scores, labels
+    return roi_scores, signed_roi_scores, labels
 
 
 # ---------------------------------------------------------------------------
@@ -406,9 +416,11 @@ def characterize_expert_clusters(expert_outputs, cluster_ids, circuit_names,
     return results
 
 
-def characterize_roi_clusters(roi_scores, cluster_ids, n_clusters):
+def characterize_roi_clusters(roi_scores, signed_roi_scores, cluster_ids,
+                              n_clusters):
     """
-    Characterize each cluster by top ROIs and network composition.
+    Characterize each cluster by top ROIs, network composition, and
+    signed direction (positive/negative relationship with ADHD).
     """
     roi_to_net = {}
     for net_name, indices in YEO17_HCP180.items():
@@ -419,6 +431,7 @@ def characterize_roi_clusters(roi_scores, cluster_ids, n_clusters):
     for c in range(n_clusters):
         mask = cluster_ids == c
         mean_scores = roi_scores[mask].mean(axis=0)  # (180,)
+        mean_signed = signed_roi_scores[mask].mean(axis=0)  # (180,)
         top_roi_indices = np.argsort(mean_scores)[::-1][:10]
 
         top_rois = []
@@ -427,16 +440,44 @@ def characterize_roi_clusters(roi_scores, cluster_ids, n_clusters):
                 "roi_idx": int(roi_idx),
                 "network": roi_to_net.get(int(roi_idx), "unknown"),
                 "score": float(mean_scores[roi_idx]),
+                "signed_score": float(mean_signed[roi_idx]),
+                "direction": "+ADHD" if mean_signed[roi_idx] > 0 else "-ADHD",
             })
 
-        # Network-level aggregation
+        # Top 5 most positive and most negative ROIs
+        top_positive_idx = np.argsort(mean_signed)[::-1][:5]
+        top_negative_idx = np.argsort(mean_signed)[:5]
+
+        top_positive = []
+        for roi_idx in top_positive_idx:
+            top_positive.append({
+                "roi_idx": int(roi_idx),
+                "network": roi_to_net.get(int(roi_idx), "unknown"),
+                "signed_score": float(mean_signed[roi_idx]),
+            })
+
+        top_negative = []
+        for roi_idx in top_negative_idx:
+            top_negative.append({
+                "roi_idx": int(roi_idx),
+                "network": roi_to_net.get(int(roi_idx), "unknown"),
+                "signed_score": float(mean_signed[roi_idx]),
+            })
+
+        # Network-level aggregation (both absolute and signed)
         network_scores = {}
         for net_name, indices in YEO17_HCP180.items():
-            network_scores[net_name] = float(mean_scores[indices].mean())
+            network_scores[net_name] = {
+                "absolute": float(mean_scores[indices].mean()),
+                "signed": float(mean_signed[indices].mean()),
+                "direction": "+ADHD" if mean_signed[indices].mean() > 0 else "-ADHD",
+            }
 
         results[f"cluster_{c}"] = {
             "n_subjects": int(mask.sum()),
             "top_rois": top_rois,
+            "top_positive_rois": top_positive,
+            "top_negative_rois": top_negative,
             "network_scores": network_scores,
         }
 
@@ -542,17 +583,37 @@ def generate_heterogeneity_report(circuit_results, expert_results,
 
         for c in range(n_clusters):
             ci = roi_results[f"cluster_{c}"]
-            lines.append(f"### Cluster {c} — Top 10 ROIs (N={ci['n_subjects']})")
+            lines.append(f"### Cluster {c} — Top 10 ROIs by Importance (N={ci['n_subjects']})")
             lines.append("")
-            lines.append("| Rank | ROI | Network | Score |")
-            lines.append("|:----:|:---:|---------|:-----:|")
+            lines.append("| Rank | ROI | Network | Importance | Signed | Direction |")
+            lines.append("|:----:|:---:|---------|:----------:|:------:|:---------:|")
             for rank, roi in enumerate(ci["top_rois"], 1):
                 lines.append(f"| {rank} | {roi['roi_idx']} | "
-                             f"{roi['network']} | {roi['score']:.4f} |")
+                             f"{roi['network']} | {roi['score']:.4f} | "
+                             f"{roi['signed_score']:+.4f} | {roi['direction']} |")
             lines.append("")
 
-        # Cross-cluster top network comparison
-        lines.append("### Network-Level Scores per Cluster")
+            # Positive and negative ROIs per cluster
+            lines.append(f"**Top 5 ROIs with positive (+ADHD) relationship:**")
+            lines.append("")
+            lines.append("| ROI | Network | Signed Score |")
+            lines.append("|:---:|---------|:------------:|")
+            for roi in ci["top_positive_rois"]:
+                lines.append(f"| {roi['roi_idx']} | {roi['network']} | "
+                             f"{roi['signed_score']:+.4f} |")
+            lines.append("")
+
+            lines.append(f"**Top 5 ROIs with negative (-ADHD) relationship:**")
+            lines.append("")
+            lines.append("| ROI | Network | Signed Score |")
+            lines.append("|:---:|---------|:------------:|")
+            for roi in ci["top_negative_rois"]:
+                lines.append(f"| {roi['roi_idx']} | {roi['network']} | "
+                             f"{roi['signed_score']:+.4f} |")
+            lines.append("")
+
+        # Cross-cluster network comparison (absolute + signed)
+        lines.append("### Network-Level Scores per Cluster (Absolute)")
         lines.append("")
         all_nets = sorted(YEO17_HCP180.keys())
         header = "| Network |"
@@ -565,8 +626,29 @@ def generate_heterogeneity_report(circuit_results, expert_results,
         for net in all_nets:
             row = f"| {net} |"
             for c in range(n_clusters):
-                score = roi_results[f"cluster_{c}"]["network_scores"][net]
+                score = roi_results[f"cluster_{c}"]["network_scores"][net]["absolute"]
                 row += f" {score:.4f} |"
+            lines.append(row)
+        lines.append("")
+
+        lines.append("### Network-Level Signed Scores per Cluster (Direction)")
+        lines.append("")
+        lines.append("Positive = network positively associated with ADHD in this cluster. "
+                     "Negative = negatively associated.")
+        lines.append("")
+        header = "| Network |"
+        sep = "|---------|"
+        for c in range(n_clusters):
+            header += f" Cluster {c} |"
+            sep += ":--------:|"
+        lines.append(header)
+        lines.append(sep)
+        for net in all_nets:
+            row = f"| {net} |"
+            for c in range(n_clusters):
+                score = roi_results[f"cluster_{c}"]["network_scores"][net]["signed"]
+                direction = roi_results[f"cluster_{c}"]["network_scores"][net]["direction"]
+                row += f" {score:+.4f} ({direction}) |"
             lines.append(row)
         lines.append("")
 
@@ -635,7 +717,9 @@ def main():
     expert_outputs, _ = extract_expert_outputs(model, test_loader, device)
     print(f"  Expert outputs: {expert_outputs.shape}")
 
-    roi_scores, _ = extract_roi_activations(model, test_loader, device)
+    roi_scores, signed_roi_scores, _ = extract_roi_activations(
+        model, test_loader, device,
+    )
     if roi_scores is not None:
         print(f"  ROI scores: {roi_scores.shape}")
 
@@ -655,6 +739,7 @@ def main():
     experts_adhd = expert_outputs[adhd_mask]
     experts_adhd_flat = experts_adhd.reshape(n_adhd, -1)  # (N_adhd, K*H)
     roi_adhd = roi_scores[adhd_mask] if roi_scores is not None else None
+    signed_roi_adhd = signed_roi_scores[adhd_mask] if signed_roi_scores is not None else None
 
     # ---------------------------------------------------------------
     # Silhouette sweep to find optimal K
@@ -724,7 +809,7 @@ def main():
     roi_results = None
     if roi_adhd is not None:
         roi_results = characterize_roi_clusters(
-            roi_adhd, roi_cluster_ids, n_clusters
+            roi_adhd, signed_roi_adhd, roi_cluster_ids, n_clusters
         )
 
     # Print circuit cluster characterization
@@ -812,6 +897,8 @@ def main():
     }
     if roi_scores is not None:
         save_dict["roi_scores"] = roi_scores
+    if signed_roi_scores is not None:
+        save_dict["signed_roi_scores"] = signed_roi_scores
     if roi_cluster_ids is not None:
         save_dict["roi_cluster_ids"] = roi_cluster_ids
     np.savez(npz_path, **save_dict)

@@ -1,7 +1,7 @@
 # Circuit MoE Interpretability Analysis Plan
 
-**Date**: 2026-03-07
-**Status**: Analysis script implemented (`analyze_circuit_moe.py`), not yet run.
+**Date**: 2026-03-07 (updated 2026-03-07)
+**Status**: Classical models submitted (jobs 49772109). Quantum models ready (`scripts/run_interpretability_quantum.sh`).
 
 ## Goal
 
@@ -10,6 +10,8 @@ Extract scientific interpretations from trained Circuit MoE models at three leve
 1. **Circuit level** — Which brain circuits are differentially engaged for ADHD+ vs ADHD- subjects?
 2. **Network level** — Within each circuit, which Yeo-17 sub-networks contribute most?
 3. **ROI level** — Which specific brain regions are most diagnostic?
+
+At each level, we measure both **magnitude** (how much a region/circuit matters) and **direction** (whether it has a positive or negative relationship with ADHD).
 
 ## Three Analysis Methods
 
@@ -28,27 +30,39 @@ Extract scientific interpretations from trained Circuit MoE models at three leve
 
 **Limitations**: The Switch Transformer load-balancing loss (alpha=0.1) encourages uniform routing, which may suppress class-dependent routing differences. Any differences that survive this regularization are therefore conservative estimates.
 
-### Method 2: Gradient Saliency (All Levels)
+### Method 2: Gradient Saliency — Absolute and Signed (All Levels)
 
-**What it measures**: The gradient of the model output with respect to the input, dOutput/dInput, quantifies how much each input feature (ROI x timepoint) influences the prediction.
+**What it measures**: The gradient of the model output with respect to the input, dOutput/dInput, quantifies how much each input feature (ROI x timepoint) influences the prediction. We compute two complementary metrics:
+
+- **Absolute saliency** (`|dOutput/dInput|`): magnitude of influence — how much this region matters, regardless of direction
+- **Signed saliency** (`dOutput/dInput`): direction of influence — whether this region has a positive or negative relationship with ADHD
 
 **How it works**:
 - Enable gradient tracking on the input tensor (B, T, 180)
 - Forward pass through the model
-- Backward pass from the logit output
-- Saliency = mean absolute gradient over the time dimension -> (B, 180)
-- Average saliency across subjects, split by class
+- Backward pass from the ADHD+ logit output
+- Absolute saliency = `mean(|gradient|, dim=time)` → (B, 180)
+- Signed saliency = `mean(gradient, dim=time)` → (B, 180)
+- Average both across subjects, split by class (ADHD+ vs ADHD-)
 - Aggregate by circuit, network, and ROI
 
-**Three levels of aggregation**:
+**Two complementary metrics at three levels**:
 
-| Level | Aggregation | Example output |
-|-------|------------|----------------|
-| Circuit | Mean saliency across all ROIs in each circuit | "DMN circuit: 0.0045, Executive: 0.0038" |
-| Network | Mean saliency across ROIs in each Yeo-17 network | "DefaultA: 0.0052, ContA: 0.0041" |
-| ROI | Per-ROI saliency | "ROI 112 (DefaultA, DMN): 0.0068" |
+| Level | Absolute Saliency | Signed Saliency |
+|-------|-------------------|-----------------|
+| Circuit | "DMN circuit: abs=0.0045" | "DMN circuit: signed=+0.0023 (+ADHD)" |
+| Network | "DefaultA: abs=0.0052" | "DefaultA: signed=-0.0011 (-ADHD)" |
+| ROI | "ROI 112: abs=0.0068" | "ROI 112: signed=+0.0041 (+ADHD)" |
 
-**Interpretation**: Higher saliency = the model is more sensitive to that region's signal. Differences between ADHD+ and ADHD- saliency reveal which regions are class-discriminative.
+**Interpreting signed saliency**:
+- **Positive signed saliency** at ROI j: increasing ROI j's temporal signal pushes the model's prediction toward ADHD+ → **positive relationship** with ADHD
+- **Negative signed saliency** at ROI j: increasing ROI j's temporal signal pushes the prediction toward ADHD- → **negative relationship** with ADHD
+- **High absolute + near-zero signed**: the ROI matters, but its direction flips across timepoints (temporally variable relationship)
+- **High absolute + high |signed|**: consistent directional relationship across time (most interpretable)
+
+This is analogous to SHAP values, which also provide both magnitude and direction. Signed gradients are a first-order linear approximation of SHAP attributions — less principled (no game-theoretic guarantees) but computationally cheaper and available without additional libraries.
+
+**Interpretation**: Absolute saliency answers "which regions matter most for ADHD classification." Signed saliency answers "which regions are positively vs negatively associated with ADHD." Together, they identify regions with strong, directionally consistent relationships — the most scientifically interpretable features.
 
 ### Method 3: Input Projection Weight Analysis (Network + ROI Level)
 
@@ -92,20 +106,22 @@ Extract scientific interpretations from trained Circuit MoE models at three leve
 
 ## Example Scientific Claims (if supported by data)
 
-### Circuit-Level Claims
+### Circuit-Level Claims (Magnitude + Direction)
 
 - "ADHD+ subjects show increased routing to the DMN expert (gate weight = X vs Y, p < 0.05), consistent with DMN suppression failure as a hallmark of ADHD (Nigg 2020, Koirala 2024)."
-- "The Salience/Affective expert shows higher saliency for ADHD+ than ADHD- subjects (diff = +Z), supporting emotional dysregulation as a key ADHD dimension (Nigg 2020)."
-- "The SensoriMotor expert shows the smallest class-dependent routing difference, consistent with sensorimotor involvement being more prominent in childhood ADHD samples (Cortese 2012) than in the ABCD cohort (ages 9-10)."
+- "The DMN circuit shows positive signed saliency (+0.00XX), indicating that increased DMN activity is positively associated with ADHD+ prediction — consistent with failure to suppress DMN during task-relevant processing (Castellanos & Proal, 2012)."
+- "The Executive circuit shows negative signed saliency (-0.00XX), indicating that increased executive network activity is associated with ADHD- prediction — consistent with frontoparietal hypoactivation in ADHD (Cortese 2012)."
+- "The Salience/Affective expert shows higher absolute saliency for ADHD+ than ADHD- subjects (diff = +Z), with positive signed saliency, supporting emotional dysregulation as a key ADHD dimension (Nigg 2020)."
 
-### Network-Level Claims
+### Network-Level Claims (Magnitude + Direction)
 
-- "Within the DMN expert, DefaultA (posterior medial cortex, angular gyrus) contributes more to ADHD classification than DefaultC (medial prefrontal), as shown by both higher gradient saliency and input projection weights."
-- "Within the Executive expert, the Dorsal Attention networks (DorsAttnA/B) show higher saliency than Frontoparietal Control networks (ContA/B/C), suggesting attentional orienting deficits are more diagnostic than executive control per se."
+- "Within the DMN expert, DefaultA (posterior medial cortex, angular gyrus) shows positive signed saliency (+ADHD) while DefaultC (medial prefrontal) shows negative signed saliency (-ADHD), suggesting that posterior and anterior DMN components have opposing relationships with ADHD classification."
+- "Within the Executive expert, DorsAttnA/B show negative signed saliency (higher activity → ADHD- prediction), consistent with dorsal attention hypoactivation as a marker of ADHD (Cortese 2012)."
 
-### ROI-Level Claims
+### ROI-Level Claims (Magnitude + Direction)
 
-- "ROI 112 (left posterior cingulate cortex, DefaultA) shows the highest gradient saliency among all 180 ROIs, consistent with the PCC's role as a hub of the DMN and its established involvement in ADHD (Castellanos & Proal, 2012)."
+- "ROI 112 (left posterior cingulate cortex, DefaultA) shows both the highest absolute gradient saliency and strong positive signed saliency (+ADHD), consistent with PCC hyperactivation during rest as a hallmark of DMN suppression failure in ADHD (Castellanos & Proal, 2012)."
+- "Among the top 10 most important ROIs (by absolute saliency), X show positive and Y show negative signed saliency, revealing that ADHD classification depends on a combination of regional hyperactivation and hypoactivation rather than a single directional effect."
 - "The top 5 most salient ROIs span 3 different circuits (2 DMN, 2 Executive, 1 Salience), supporting the distributed nature of ADHD-related dysfunction."
 
 ### Cross-Model Comparisons
@@ -124,13 +140,28 @@ Usage:
         --output-dir=analysis/classical_adhd_3
 ```
 
+**Report sections** (7 total):
+1. Gate Weights by Class (magnitude + direction via ADHD+/ADHD- comparison)
+2. Circuit-Level Absolute Gradient Saliency (magnitude)
+3. Circuit-Level Signed Gradient Saliency (direction: +ADHD / -ADHD)
+4. Network-Level Absolute Gradient Saliency (magnitude)
+5. Network-Level Signed Gradient Saliency (direction)
+6. ROI-Level Absolute Saliency (top 20 by magnitude + top 20 by class difference)
+7. ROI-Level Signed Saliency (top 10 positive +ADHD, top 10 negative -ADHD)
+8. Input Projection Weights per Expert (magnitude)
+
 **Outputs per model**:
-- `interpretability_report.md` — formatted markdown with all results
-- `results.json` — raw numerical results for further analysis
+- `interpretability_report.md` — formatted markdown with all results (magnitude + direction)
+- `results.json` — raw numerical results including `roi_signed_top20_positive` and `roi_signed_top20_negative`
 
-### SLURM: `scripts/run_interpretability_analysis.sh`
+### SLURM Scripts
 
-Runs all 4 models sequentially. Estimated time: < 30 min total (inference only, no training).
+| Script | Models | Resource | Time |
+|--------|--------|----------|------|
+| `scripts/run_interpretability_classical.sh` | Classical 4-expert + 2-expert | GPU (`m4807_g`) | 1h |
+| `scripts/run_interpretability_quantum.sh` | Quantum v2 4-expert + 2-expert | CPU only (`m4807`) | 2h |
+
+Classical models use GPU for faster backward pass (gradient saliency). Quantum models use CPU only because PennyLane's `default.qubit` simulator is CPU-bound.
 
 ## Caveats
 
