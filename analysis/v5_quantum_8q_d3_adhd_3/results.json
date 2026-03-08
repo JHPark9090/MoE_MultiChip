@@ -1,0 +1,1841 @@
+{
+  "model_type": "quantum",
+  "circuit_config": "adhd_3",
+  "checkpoint": "checkpoints/CircuitMoE_quantum_adhd_3_49777879.pt",
+  "gate_weight_stats": {
+    "DMN": {
+      "adhd_pos_mean": 0.2485874444246292,
+      "adhd_neg_mean": 0.24880006909370422,
+      "adhd_pos_std": 0.0018608351238071918,
+      "adhd_neg_std": 0.0015351660549640656,
+      "diff": -0.0002126246690750122,
+      "t_stat": -1.573180848931629,
+      "p_value": 0.1162536240219328
+    },
+    "Executive": {
+      "adhd_pos_mean": 0.2511381208896637,
+      "adhd_neg_mean": 0.25141292810440063,
+      "adhd_pos_std": 0.0027744004037231207,
+      "adhd_neg_std": 0.0020317048765718937,
+      "diff": -0.0002748072147369385,
+      "t_stat": -1.4156568752249705,
+      "p_value": 0.15749349818668168
+    },
+    "Salience": {
+      "adhd_pos_mean": 0.24818335473537445,
+      "adhd_neg_mean": 0.247736856341362,
+      "adhd_pos_std": 0.003865285310894251,
+      "adhd_neg_std": 0.002612864365801215,
+      "diff": 0.00044649839401245117,
+      "t_stat": 1.6873257657509828,
+      "p_value": 0.09219526628896947
+    },
+    "SensoriMotor": {
+      "adhd_pos_mean": 0.25209105014801025,
+      "adhd_neg_mean": 0.2520501911640167,
+      "adhd_pos_std": 0.0008506645099259913,
+      "adhd_neg_std": 0.0006446298793889582,
+      "diff": 4.0858983993530273e-05,
+      "t_stat": 0.6795776288531534,
+      "p_value": 0.4970763501035125
+    }
+  },
+  "circuit_saliency": {
+    "DMN": {
+      "all_mean": 0.0008407353307120502,
+      "adhd_pos_mean": 0.000822870119009167,
+      "adhd_neg_mean": 0.0008542399737052619,
+      "diff": -3.136985469609499e-05,
+      "signed_all": 6.693146860925481e-05,
+      "signed_pos": 6.296773790381849e-05,
+      "signed_neg": 6.992766429902986e-05,
+      "n_rois": 41
+    },
+    "Executive": {
+      "all_mean": 0.0005664592608809471,
+      "adhd_pos_mean": 0.000558279687538743,
+      "adhd_neg_mean": 0.0005726423114538193,
+      "diff": -1.4362623915076256e-05,
+      "signed_all": -2.647216388140805e-05,
+      "signed_pos": -2.763980046438519e-05,
+      "signed_neg": -2.5589546567061916e-05,
+      "n_rois": 52
+    },
+    "Salience": {
+      "all_mean": 0.0007863257196731865,
+      "adhd_pos_mean": 0.0007744534523226321,
+      "adhd_neg_mean": 0.0007953001768328249,
+      "diff": -2.084672451019287e-05,
+      "signed_all": -1.1195471643077326e-06,
+      "signed_pos": 3.8102750750113046e-06,
+      "signed_neg": -4.846021056437166e-06,
+      "n_rois": 44
+    },
+    "SensoriMotor": {
+      "all_mean": 0.0008186434861272573,
+      "adhd_pos_mean": 0.0008019551751203835,
+      "adhd_neg_mean": 0.0008312581339851022,
+      "diff": -2.9302958864718676e-05,
+      "signed_all": 0.00011026402353309095,
+      "signed_pos": 0.00010043963993666694,
+      "signed_neg": 0.00011769037519115955,
+      "n_rois": 43
+    }
+  },
+  "network_saliency": {
+    "VisCent": {
+      "all_mean": 0.000800269132014364,
+      "adhd_pos_mean": 0.0007806628127582371,
+      "adhd_neg_mean": 0.0008150895009748638,
+      "diff": -3.4426688216626644e-05,
+      "signed_all": 0.00014148153422866017,
+      "signed_pos": 0.00013068935368210077,
+      "signed_neg": 0.00014963943976908922,
+      "n_rois": 12
+    },
+    "VisPeri": {
+      "all_mean": 0.0007779209990985692,
+      "adhd_pos_mean": 0.0007638102979399264,
+      "adhd_neg_mean": 0.0007885873201303184,
+      "diff": -2.4777022190392017e-05,
+      "signed_all": 6.549221143359318e-05,
+      "signed_pos": 5.732216959586367e-05,
+      "signed_neg": 7.166804425651208e-05,
+      "n_rois": 8
+    },
+    "SomMotA": {
+      "all_mean": 0.0008378711063414812,
+      "adhd_pos_mean": 0.0008242579642683268,
+      "adhd_neg_mean": 0.0008481617551296949,
+      "diff": -2.390379086136818e-05,
+      "signed_all": 7.66790471971035e-05,
+      "signed_pos": 7.260363054228947e-05,
+      "signed_neg": 7.975978223839775e-05,
+      "n_rois": 9
+    },
+    "SomMotB": {
+      "all_mean": 0.0008453023619949818,
+      "adhd_pos_mean": 0.0008276657317765057,
+      "adhd_neg_mean": 0.0008586338954046369,
+      "diff": -3.096816362813115e-05,
+      "signed_all": 0.0001306803897023201,
+      "signed_pos": 0.00011704445205396041,
+      "signed_neg": 0.0001409879041602835,
+      "n_rois": 14
+    },
+    "DorsAttnA": {
+      "all_mean": 0.0005637937574647367,
+      "adhd_pos_mean": 0.0005557977128773928,
+      "adhd_neg_mean": 0.0005698380991816521,
+      "diff": -1.40403863042593e-05,
+      "signed_all": -4.444742080522701e-05,
+      "signed_pos": -4.530090154730715e-05,
+      "signed_neg": -4.380229438538663e-05,
+      "n_rois": 16
+    },
+    "DorsAttnB": {
+      "all_mean": 0.000554728670977056,
+      "adhd_pos_mean": 0.0005464067216962576,
+      "adhd_neg_mean": 0.0005610194057226181,
+      "diff": -1.4612684026360512e-05,
+      "signed_all": -2.1182364434935153e-05,
+      "signed_pos": -2.7732699891203083e-05,
+      "signed_neg": -1.623091520741582e-05,
+      "n_rois": 8
+    },
+    "SalVentAttnA": {
+      "all_mean": 0.0007581650279462337,
+      "adhd_pos_mean": 0.0007480236236006021,
+      "adhd_neg_mean": 0.0007658308604732156,
+      "diff": -1.780723687261343e-05,
+      "signed_all": 4.34380563092418e-05,
+      "signed_pos": 4.629504473996349e-05,
+      "signed_neg": 4.127843931200914e-05,
+      "n_rois": 19
+    },
+    "SalVentAttnB": {
+      "all_mean": 0.0007577566429972649,
+      "adhd_pos_mean": 0.0007487248512916267,
+      "adhd_neg_mean": 0.0007645840523764491,
+      "diff": -1.5859201084822416e-05,
+      "signed_all": 8.096847886918113e-05,
+      "signed_pos": 8.382592932321131e-05,
+      "signed_neg": 7.880848716013134e-05,
+      "n_rois": 8
+    },
+    "Limbic_TempPole": {
+      "all_mean": 0.0008363741217181087,
+      "adhd_pos_mean": 0.0008212091051973403,
+      "adhd_neg_mean": 0.0008478372474201024,
+      "diff": -2.6628142222762108e-05,
+      "signed_all": -4.317884668125771e-05,
+      "signed_pos": -4.46112135250587e-05,
+      "signed_neg": -4.2096071410924196e-05,
+      "n_rois": 9
+    },
+    "Limbic_OFC": {
+      "all_mean": 0.0008254725253209472,
+      "adhd_pos_mean": 0.0008103526197373867,
+      "adhd_neg_mean": 0.0008369017159566283,
+      "diff": -2.654909621924162e-05,
+      "signed_all": -0.0001417151652276516,
+      "signed_pos": -0.00012263251119293272,
+      "signed_neg": -0.00015613980940543115,
+      "n_rois": 8
+    },
+    "ContA": {
+      "all_mean": 0.0005258303135633469,
+      "adhd_pos_mean": 0.000520788598805666,
+      "adhd_neg_mean": 0.0005296418094076216,
+      "diff": -8.853210601955652e-06,
+      "signed_all": 1.4712795746163465e-05,
+      "signed_pos": 1.2689774848695379e-05,
+      "signed_neg": 1.6242007404798642e-05,
+      "n_rois": 5
+    },
+    "ContB": {
+      "all_mean": 0.00059283128939569,
+      "adhd_pos_mean": 0.0005838279030285776,
+      "adhd_neg_mean": 0.0005996370455250144,
+      "diff": -1.5809142496436834e-05,
+      "signed_all": -5.7119730627164245e-05,
+      "signed_pos": -5.5810374760767445e-05,
+      "signed_neg": -5.8109493693336844e-05,
+      "n_rois": 12
+    },
+    "ContC": {
+      "all_mean": 0.0005685658543370664,
+      "adhd_pos_mean": 0.000559695647098124,
+      "adhd_neg_mean": 0.0005752708530053496,
+      "diff": -1.557520590722561e-05,
+      "signed_all": 1.0539807590248529e-05,
+      "signed_pos": 1.0516542715777177e-05,
+      "signed_neg": 1.0557391760812607e-05,
+      "n_rois": 11
+    },
+    "DefaultA": {
+      "all_mean": 0.0007999825174920261,
+      "adhd_pos_mean": 0.0007807926740497351,
+      "adhd_neg_mean": 0.0008144883322529495,
+      "diff": -3.369565820321441e-05,
+      "signed_all": 5.501853229361586e-05,
+      "signed_pos": 4.803204501513392e-05,
+      "signed_neg": 6.02996806264855e-05,
+      "n_rois": 5
+    },
+    "DefaultB": {
+      "all_mean": 0.0008346387185156345,
+      "adhd_pos_mean": 0.0008146140608005226,
+      "adhd_neg_mean": 0.0008497756207361817,
+      "diff": -3.516155993565917e-05,
+      "signed_all": 3.0498424166580662e-05,
+      "signed_pos": 2.4021685021580197e-05,
+      "signed_neg": 3.539425233611837e-05,
+      "n_rois": 5
+    },
+    "DefaultC": {
+      "all_mean": 0.0008729150285944343,
+      "adhd_pos_mean": 0.0008537149406038225,
+      "adhd_neg_mean": 0.0008874282939359546,
+      "diff": -3.37133533321321e-05,
+      "signed_all": 0.00013124100223649293,
+      "signed_pos": 0.00012635753955692053,
+      "signed_neg": 0.0001349324156763032,
+      "n_rois": 16
+    },
+    "TempPar": {
+      "all_mean": 0.0008220270974561572,
+      "adhd_pos_mean": 0.0008067464805208147,
+      "adhd_neg_mean": 0.0008335776510648429,
+      "diff": -2.6831170544028282e-05,
+      "signed_all": 1.4449949958361685e-05,
+      "signed_pos": 1.3312534065335058e-05,
+      "signed_neg": 1.5309717127820477e-05,
+      "n_rois": 15
+    }
+  },
+  "roi_saliency_top50": [
+    {
+      "roi_idx": 134,
+      "region": "TF",
+      "network": "Limbic_TempPole",
+      "circuit": "Salience",
+      "saliency_all": 0.0012195729650557041,
+      "saliency_pos": 0.001194409211166203,
+      "saliency_neg": 0.0012385934824123979,
+      "diff": -4.418427124619484e-05,
+      "signed_all": -4.431315028341487e-05,
+      "signed_pos": -6.195303285494447e-05,
+      "signed_neg": -3.097910666838288e-05
+    },
+    {
+      "roi_idx": 175,
+      "region": "STSva",
+      "network": "TempPar",
+      "circuit": "DMN",
+      "saliency_all": 0.0011526360176503658,
+      "saliency_pos": 0.0011312426067888737,
+      "saliency_neg": 0.001168806804344058,
+      "diff": -3.7564197555184364e-05,
+      "signed_all": 0.0004964428953826427,
+      "signed_pos": 0.00046802518772892654,
+      "signed_neg": 0.0005179242580197752
+    },
+    {
+      "roi_idx": 171,
+      "region": "TGv",
+      "network": "Limbic_TempPole",
+      "circuit": "Salience",
+      "saliency_all": 0.0011342271463945508,
+      "saliency_pos": 0.0011137202382087708,
+      "saliency_neg": 0.0011497285449877381,
+      "diff": -3.600830677896738e-05,
+      "signed_all": -0.00020597086404450238,
+      "signed_pos": -0.0002154346148017794,
+      "signed_neg": -0.00019881724438164383
+    },
+    {
+      "roi_idx": 23,
+      "region": "A1",
+      "network": "SomMotB",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0010933380108326674,
+      "saliency_pos": 0.0010744351893663406,
+      "saliency_neg": 0.0011076257796958089,
+      "diff": -3.319059032946825e-05,
+      "signed_all": 0.0004945495747961104,
+      "signed_pos": 0.0004933206364512444,
+      "signed_neg": 0.0004954785108566284
+    },
+    {
+      "roi_idx": 32,
+      "region": "v23ab",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0010690074414014816,
+      "saliency_pos": 0.0010351981036365032,
+      "saliency_neg": 0.0010945630492642522,
+      "diff": -5.9364945627748966e-05,
+      "signed_all": 0.00033721752697601914,
+      "signed_pos": 0.00031591628794558346,
+      "signed_neg": 0.00035331890103407204
+    },
+    {
+      "roi_idx": 92,
+      "region": "OFC",
+      "network": "Limbic_OFC",
+      "circuit": "Salience",
+      "saliency_all": 0.001067176228389144,
+      "saliency_pos": 0.001042546471580863,
+      "saliency_neg": 0.0010857933666557074,
+      "diff": -4.324689507484436e-05,
+      "signed_all": -0.00016120763029903173,
+      "signed_pos": -0.00012301403330639005,
+      "signed_neg": -0.00019007836817763746
+    },
+    {
+      "roi_idx": 129,
+      "region": "STSvp",
+      "network": "TempPar",
+      "circuit": "DMN",
+      "saliency_all": 0.0010357212740927935,
+      "saliency_pos": 0.0009948322549462318,
+      "saliency_neg": 0.0010666295420378447,
+      "diff": -7.179728709161282e-05,
+      "signed_all": 0.00032965635182335973,
+      "signed_pos": 0.0002879234089050442,
+      "signed_neg": 0.0003612019936554134
+    },
+    {
+      "roi_idx": 70,
+      "region": "9p",
+      "network": "TempPar",
+      "circuit": "DMN",
+      "saliency_all": 0.0010102246887981892,
+      "saliency_pos": 0.000997567200101912,
+      "saliency_neg": 0.001019794144667685,
+      "diff": -2.222694456577301e-05,
+      "signed_all": 3.6050543712917715e-05,
+      "signed_pos": 5.3196690714685246e-05,
+      "signed_neg": 2.308967123099137e-05
+    },
+    {
+      "roi_idx": 21,
+      "region": "PIT",
+      "network": "VisCent",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0010009246179834008,
+      "saliency_pos": 0.000979571370407939,
+      "saliency_neg": 0.0010170642053708434,
+      "diff": -3.749283496290445e-05,
+      "signed_all": 0.0005313885631039739,
+      "signed_pos": 0.000513412756845355,
+      "signed_neg": 0.0005449770833365619
+    },
+    {
+      "roi_idx": 128,
+      "region": "STSdp",
+      "network": "DefaultA",
+      "circuit": "DMN",
+      "saliency_all": 0.0009960769675672054,
+      "saliency_pos": 0.000965296698268503,
+      "saliency_neg": 0.0010193439666181803,
+      "diff": -5.4047268349677324e-05,
+      "signed_all": 0.0004143341211602092,
+      "signed_pos": 0.0003745541034732014,
+      "signed_neg": 0.0004444043734110892
+    },
+    {
+      "roi_idx": 67,
+      "region": "8Ad",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.000967422965914011,
+      "saliency_pos": 0.0009448269847780466,
+      "saliency_neg": 0.0009845031891018152,
+      "diff": -3.9676204323768616e-05,
+      "signed_all": 0.0002092063514282927,
+      "signed_pos": 0.00021089128858875483,
+      "signed_neg": 0.000207932956982404
+    },
+    {
+      "roi_idx": 106,
+      "region": "TA2",
+      "network": "SomMotB",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0009585806983523071,
+      "saliency_pos": 0.0009317903313785791,
+      "saliency_neg": 0.000978831434622407,
+      "diff": -4.704110324382782e-05,
+      "signed_all": 0.00038365236832760274,
+      "signed_pos": 0.0003569495165720582,
+      "signed_neg": 0.0004038378538098186
+    },
+    {
+      "roi_idx": 149,
+      "region": "PGi",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0009506981587037444,
+      "saliency_pos": 0.0009385034791193902,
+      "saliency_neg": 0.0009599167970009148,
+      "diff": -2.1413317881524563e-05,
+      "signed_all": 0.0002657327859196812,
+      "signed_pos": 0.0002399535005679354,
+      "signed_neg": 0.00028521966305561364
+    },
+    {
+      "roi_idx": 126,
+      "region": "PHA3",
+      "network": "DefaultB",
+      "circuit": "DMN",
+      "saliency_all": 0.0009460981236770749,
+      "saliency_pos": 0.0009322882397100329,
+      "saliency_neg": 0.0009565384825691581,
+      "diff": -2.4250242859125137e-05,
+      "signed_all": 0.00014940321852918714,
+      "signed_pos": 0.00014355317398440093,
+      "signed_neg": 0.00015382540004793555
+    },
+    {
+      "roi_idx": 31,
+      "region": "23d",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0009396603563800454,
+      "saliency_pos": 0.0009145939256995916,
+      "saliency_neg": 0.0009586079977452755,
+      "diff": -4.401407204568386e-05,
+      "signed_all": -4.22400189563632e-05,
+      "signed_pos": -3.053132968489081e-05,
+      "signed_neg": -5.109074481879361e-05
+    },
+    {
+      "roi_idx": 73,
+      "region": "44",
+      "network": "TempPar",
+      "circuit": "DMN",
+      "saliency_all": 0.0009338079835288227,
+      "saliency_pos": 0.0009113052510656416,
+      "saliency_neg": 0.000950818823184818,
+      "diff": -3.951357211917639e-05,
+      "signed_all": -0.0002379659126745537,
+      "signed_pos": -0.0002172846725443378,
+      "signed_neg": -0.0002535987878218293
+    },
+    {
+      "roi_idx": 39,
+      "region": "24dd",
+      "network": "SomMotA",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0009294516639783978,
+      "saliency_pos": 0.0009141420596279204,
+      "saliency_neg": 0.0009410260245203972,
+      "diff": -2.6883964892476797e-05,
+      "signed_all": 0.0003117115702480078,
+      "signed_pos": 0.00029980516410432756,
+      "signed_neg": 0.00032071233727037907
+    },
+    {
+      "roi_idx": 29,
+      "region": "7m",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0009278206271119416,
+      "saliency_pos": 0.000908682937733829,
+      "saliency_neg": 0.0009422862203791738,
+      "diff": -3.3603282645344734e-05,
+      "signed_all": 0.0003643425297923386,
+      "signed_pos": 0.0003586428938433528,
+      "signed_neg": 0.00036865059519186616
+    },
+    {
+      "roi_idx": 125,
+      "region": "PHA1",
+      "network": "DefaultB",
+      "circuit": "DMN",
+      "saliency_all": 0.0009266052511520684,
+      "saliency_pos": 0.0008988292538560927,
+      "saliency_neg": 0.000947600114159286,
+      "diff": -4.877086030319333e-05,
+      "signed_all": -0.00019188641454093158,
+      "signed_pos": -0.00019088915723841637,
+      "signed_neg": -0.0001926403201650828
+    },
+    {
+      "roi_idx": 8,
+      "region": "3b",
+      "network": "SomMotA",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0009229749557562172,
+      "saliency_pos": 0.0008932365453802049,
+      "saliency_neg": 0.0009454546379856765,
+      "diff": -5.221809260547161e-05,
+      "signed_all": -0.00030671863351017237,
+      "signed_pos": -0.00029784359503537416,
+      "signed_neg": -0.0003134271828457713
+    },
+    {
+      "roi_idx": 61,
+      "region": "d32",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0009168318938463926,
+      "saliency_pos": 0.0008900507818907499,
+      "saliency_neg": 0.0009370767511427402,
+      "diff": -4.702596925199032e-05,
+      "signed_all": 0.00011738641478586942,
+      "signed_pos": 0.00011341977369738743,
+      "signed_neg": 0.00012038485874654725
+    },
+    {
+      "roi_idx": 34,
+      "region": "31pv",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0009154940489679575,
+      "saliency_pos": 0.0009007157059386373,
+      "saliency_neg": 0.0009266645065508783,
+      "diff": -2.594880061224103e-05,
+      "signed_all": -0.0002657750737853348,
+      "signed_pos": -0.0002749066334217787,
+      "signed_neg": -0.00025887269293889403
+    },
+    {
+      "roi_idx": 64,
+      "region": "10r",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0009123238269239664,
+      "saliency_pos": 0.0008812203304842114,
+      "saliency_neg": 0.0009358343086205423,
+      "diff": -5.461397813633084e-05,
+      "signed_all": 0.00037615056498907506,
+      "signed_pos": 0.0003473278193268925,
+      "signed_neg": 0.0003979378961957991
+    },
+    {
+      "roi_idx": 163,
+      "region": "25",
+      "network": "Limbic_OFC",
+      "circuit": "Salience",
+      "saliency_all": 0.0009115259745158255,
+      "saliency_pos": 0.0008918713429011405,
+      "saliency_neg": 0.0009263840620405972,
+      "diff": -3.451271913945675e-05,
+      "signed_all": 0.00026285587227903306,
+      "signed_pos": 0.0002491429913789034,
+      "signed_neg": 0.00027322143432684243
+    },
+    {
+      "roi_idx": 177,
+      "region": "PI",
+      "network": "SalVentAttnA",
+      "circuit": "Salience",
+      "saliency_all": 0.0009096051217056811,
+      "saliency_pos": 0.0008954054792411625,
+      "saliency_neg": 0.0009203377994708717,
+      "diff": -2.493232022970915e-05,
+      "signed_all": 0.00021528090292122215,
+      "signed_pos": 0.00022321287542581558,
+      "signed_neg": 0.00020928477169945836
+    },
+    {
+      "roi_idx": 4,
+      "region": "V3",
+      "network": "VisCent",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0009090618696063757,
+      "saliency_pos": 0.0008846989367157221,
+      "saliency_neg": 0.0009274783660657704,
+      "diff": -4.2779429350048304e-05,
+      "signed_all": -3.568408646970056e-05,
+      "signed_pos": -4.756082489620894e-05,
+      "signed_neg": -2.670640969881788e-05
+    },
+    {
+      "roi_idx": 11,
+      "region": "55b",
+      "network": "SomMotB",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.000893575488589704,
+      "saliency_pos": 0.0008757244795560837,
+      "saliency_neg": 0.0009070694213733077,
+      "diff": -3.1344941817224026e-05,
+      "signed_all": 0.00012994391727261245,
+      "signed_pos": 0.00011729169636964798,
+      "signed_neg": 0.0001395076687913388
+    },
+    {
+      "roi_idx": 164,
+      "region": "s32",
+      "network": "Limbic_OFC",
+      "circuit": "Salience",
+      "saliency_all": 0.0008803956443443894,
+      "saliency_pos": 0.0008659181767143309,
+      "saliency_neg": 0.0008913394995033741,
+      "diff": -2.5421322789043188e-05,
+      "signed_all": -0.00031127434340305626,
+      "signed_pos": -0.00026537373196333647,
+      "signed_neg": -0.0003459705039858818
+    },
+    {
+      "roi_idx": 110,
+      "region": "AVI",
+      "network": "SalVentAttnB",
+      "circuit": "Salience",
+      "saliency_all": 0.0008800654322840273,
+      "saliency_pos": 0.0008683643536642194,
+      "saliency_neg": 0.0008889109012670815,
+      "diff": -2.054654760286212e-05,
+      "signed_all": 0.0004170390893705189,
+      "signed_pos": 0.0003986972151324153,
+      "signed_neg": 0.0004309036012273282
+    },
+    {
+      "roi_idx": 15,
+      "region": "V7",
+      "network": "VisCent",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008756750030443072,
+      "saliency_pos": 0.0008509816252626479,
+      "saliency_neg": 0.0008943401044234633,
+      "diff": -4.335847916081548e-05,
+      "signed_all": 0.0003287366416770965,
+      "signed_pos": 0.0003099942405242473,
+      "signed_neg": 0.0003429041535127908
+    },
+    {
+      "roi_idx": 60,
+      "region": "a24",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0008703945786692202,
+      "saliency_pos": 0.0008551800274290144,
+      "saliency_neg": 0.0008818948408588767,
+      "diff": -2.671481342986226e-05,
+      "signed_all": 0.0001932084560394287,
+      "signed_pos": 0.00019285647431388497,
+      "signed_neg": 0.00019347446504980326
+    },
+    {
+      "roi_idx": 35,
+      "region": "5m",
+      "network": "SomMotA",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008682461339049041,
+      "saliency_pos": 0.00084099912783131,
+      "saliency_neg": 0.0008888435550034046,
+      "diff": -4.7844427172094584e-05,
+      "signed_all": 6.545257929246873e-05,
+      "signed_pos": 6.176865281304345e-05,
+      "signed_neg": 6.823726289439946e-05
+    },
+    {
+      "roi_idx": 53,
+      "region": "6d",
+      "network": "SomMotA",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008666226058267057,
+      "saliency_pos": 0.0008622360765002668,
+      "saliency_neg": 0.0008699377649463713,
+      "diff": -7.701688446104527e-06,
+      "signed_all": 0.00019327894551679492,
+      "signed_pos": 0.00021490584185812622,
+      "signed_neg": 0.0001769311638781801
+    },
+    {
+      "roi_idx": 50,
+      "region": "1",
+      "network": "SomMotA",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008619418949820101,
+      "saliency_pos": 0.0008492670604027808,
+      "saliency_neg": 0.000871523458044976,
+      "diff": -2.2256397642195225e-05,
+      "signed_all": 7.248626207001507e-05,
+      "signed_pos": 6.599293556064367e-05,
+      "signed_neg": 7.739465218037367e-05
+    },
+    {
+      "roi_idx": 56,
+      "region": "p24pr",
+      "network": "SalVentAttnA",
+      "circuit": "Salience",
+      "saliency_all": 0.0008612936944700778,
+      "saliency_pos": 0.0008460319368168712,
+      "saliency_neg": 0.0008728319080546498,
+      "diff": -2.6799971237778664e-05,
+      "signed_all": -0.0002227696677437052,
+      "signed_pos": -0.0002081293350784108,
+      "signed_neg": -0.00023383653024211526
+    },
+    {
+      "roi_idx": 174,
+      "region": "A4",
+      "network": "SomMotB",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008584161987528205,
+      "saliency_pos": 0.0008377819322049618,
+      "saliency_neg": 0.0008740138146094978,
+      "diff": -3.623188240453601e-05,
+      "signed_all": 0.0001988064614124596,
+      "signed_pos": 0.00019010923278983682,
+      "signed_neg": 0.0002053804200841114
+    },
+    {
+      "roi_idx": 172,
+      "region": "MBelt",
+      "network": "SomMotB",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008508518221788108,
+      "saliency_pos": 0.0008354939054697752,
+      "saliency_neg": 0.0008624620968475938,
+      "diff": -2.6968191377818584e-05,
+      "signed_all": 3.6749384889844805e-05,
+      "signed_pos": 8.092098141787574e-06,
+      "signed_neg": 5.841163147124462e-05
+    },
+    {
+      "roi_idx": 160,
+      "region": "31pd",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0008492641500197351,
+      "saliency_pos": 0.0008267055382020772,
+      "saliency_neg": 0.0008663155022077262,
+      "diff": -3.960996400564909e-05,
+      "signed_all": 0.00012893763778265566,
+      "signed_pos": 0.00010170797759201378,
+      "signed_neg": 0.00014952063793316483
+    },
+    {
+      "roi_idx": 103,
+      "region": "RI",
+      "network": "SomMotB",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008489613537676632,
+      "saliency_pos": 0.000838958250824362,
+      "saliency_neg": 0.0008565221214666963,
+      "diff": -1.7563870642334223e-05,
+      "signed_all": 0.0001469316630391404,
+      "signed_pos": 9.084634075406939e-05,
+      "signed_neg": 0.00018932705279439688
+    },
+    {
+      "roi_idx": 65,
+      "region": "47m",
+      "network": "TempPar",
+      "circuit": "DMN",
+      "saliency_all": 0.0008474652422592044,
+      "saliency_pos": 0.0008282454800792038,
+      "saliency_neg": 0.0008619930595159531,
+      "diff": -3.374757943674922e-05,
+      "signed_all": -0.0003185004461556673,
+      "signed_pos": -0.0003135633305646479,
+      "signed_neg": -0.000322232604958117
+    },
+    {
+      "roi_idx": 40,
+      "region": "24dv",
+      "network": "SalVentAttnA",
+      "circuit": "Salience",
+      "saliency_all": 0.0008470335160382092,
+      "saliency_pos": 0.0008359537459909916,
+      "saliency_neg": 0.000855409016367048,
+      "diff": -1.9455270376056433e-05,
+      "signed_all": 6.012322774040513e-05,
+      "signed_pos": 5.939621041761711e-05,
+      "signed_neg": 6.067276990506798e-05
+    },
+    {
+      "roi_idx": 178,
+      "region": "a32pr",
+      "network": "SalVentAttnB",
+      "circuit": "Salience",
+      "saliency_all": 0.0008461743709631264,
+      "saliency_pos": 0.0008290315163321793,
+      "saliency_neg": 0.0008591333753429353,
+      "diff": -3.0101859010756016e-05,
+      "signed_all": -3.120519613730721e-05,
+      "signed_pos": -9.920892807713244e-06,
+      "signed_neg": -4.729410647996701e-05
+    },
+    {
+      "roi_idx": 91,
+      "region": "13l",
+      "network": "Limbic_OFC",
+      "circuit": "Salience",
+      "saliency_all": 0.0008440164965577424,
+      "saliency_pos": 0.0008272581035271287,
+      "saliency_neg": 0.0008566830074414611,
+      "diff": -2.942490391433239e-05,
+      "signed_all": -0.0004327453498262912,
+      "signed_pos": -0.0003925343044102192,
+      "signed_neg": -0.00046314095379784703
+    },
+    {
+      "roi_idx": 12,
+      "region": "V3A",
+      "network": "VisPeri",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.00084275146946311,
+      "saliency_pos": 0.000827724055852741,
+      "saliency_neg": 0.0008541105198673904,
+      "diff": -2.638646401464939e-05,
+      "signed_all": -4.1088696889346465e-05,
+      "signed_pos": -4.798153167939745e-05,
+      "signed_neg": -3.5878394555766135e-05
+    },
+    {
+      "roi_idx": 20,
+      "region": "LO2",
+      "network": "VisCent",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008388517890125513,
+      "saliency_pos": 0.0008234099368564785,
+      "saliency_neg": 0.0008505241712555289,
+      "diff": -2.7114234399050474e-05,
+      "signed_all": 0.00016999398940242827,
+      "signed_pos": 0.00013614923227578402,
+      "signed_neg": 0.00019557736231945455
+    },
+    {
+      "roi_idx": 97,
+      "region": "s6-8",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0008371509029529989,
+      "saliency_pos": 0.0008217919385060668,
+      "saliency_neg": 0.0008487606537528336,
+      "diff": -2.6968715246766806e-05,
+      "signed_all": 4.504745447775349e-05,
+      "signed_pos": 5.502831481862813e-05,
+      "signed_neg": 3.750290488824248e-05
+    },
+    {
+      "roi_idx": 123,
+      "region": "PBelt",
+      "network": "SomMotB",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008365424582734704,
+      "saliency_pos": 0.0008187909261323512,
+      "saliency_neg": 0.0008499606628902256,
+      "diff": -3.116973675787449e-05,
+      "signed_all": -0.00013008304813411087,
+      "signed_pos": -0.0001338907895842567,
+      "signed_neg": -0.00012720466475002468
+    },
+    {
+      "roi_idx": 25,
+      "region": "SFL",
+      "network": "TempPar",
+      "circuit": "DMN",
+      "saliency_all": 0.0008352489676326513,
+      "saliency_pos": 0.0008133228402584791,
+      "saliency_neg": 0.0008518226677551866,
+      "diff": -3.849982749670744e-05,
+      "signed_all": -2.512751962058246e-05,
+      "signed_pos": -3.762348205782473e-05,
+      "signed_neg": -1.568170409882441e-05
+    },
+    {
+      "roi_idx": 43,
+      "region": "6ma",
+      "network": "SalVentAttnA",
+      "circuit": "Salience",
+      "saliency_all": 0.0008341799257323146,
+      "saliency_pos": 0.0008319461485370994,
+      "saliency_neg": 0.0008358682971447706,
+      "diff": -3.922148607671261e-06,
+      "signed_all": 3.871578428515932e-06,
+      "signed_pos": 1.6051426428020932e-05,
+      "signed_neg": -5.3352300710685086e-06
+    },
+    {
+      "roi_idx": 141,
+      "region": "DVT",
+      "network": "VisPeri",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008276946027763188,
+      "saliency_pos": 0.0008150517242029309,
+      "saliency_neg": 0.0008372520678676665,
+      "diff": -2.2200343664735556e-05,
+      "signed_all": 0.0001235725067090243,
+      "signed_pos": 0.00011687677761074156,
+      "signed_neg": 0.0001286338665522635
+    }
+  ],
+  "roi_signed_top20_positive": [
+    {
+      "roi_idx": 21,
+      "region": "PIT",
+      "network": "VisCent",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0010009246179834008,
+      "saliency_pos": 0.000979571370407939,
+      "saliency_neg": 0.0010170642053708434,
+      "diff": -3.749283496290445e-05,
+      "signed_all": 0.0005313885631039739,
+      "signed_pos": 0.000513412756845355,
+      "signed_neg": 0.0005449770833365619
+    },
+    {
+      "roi_idx": 175,
+      "region": "STSva",
+      "network": "TempPar",
+      "circuit": "DMN",
+      "saliency_all": 0.0011526360176503658,
+      "saliency_pos": 0.0011312426067888737,
+      "saliency_neg": 0.001168806804344058,
+      "diff": -3.7564197555184364e-05,
+      "signed_all": 0.0004964428953826427,
+      "signed_pos": 0.00046802518772892654,
+      "signed_neg": 0.0005179242580197752
+    },
+    {
+      "roi_idx": 23,
+      "region": "A1",
+      "network": "SomMotB",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0010933380108326674,
+      "saliency_pos": 0.0010744351893663406,
+      "saliency_neg": 0.0011076257796958089,
+      "diff": -3.319059032946825e-05,
+      "signed_all": 0.0004945495747961104,
+      "signed_pos": 0.0004933206364512444,
+      "signed_neg": 0.0004954785108566284
+    },
+    {
+      "roi_idx": 135,
+      "region": "TE2p",
+      "network": "Limbic_TempPole",
+      "circuit": "Salience",
+      "saliency_all": 0.000808822107501328,
+      "saliency_pos": 0.0007915365276858211,
+      "saliency_neg": 0.0008218880393542349,
+      "diff": -3.0351511668413877e-05,
+      "signed_all": 0.0004719043499790132,
+      "signed_pos": 0.00044912000885233283,
+      "signed_neg": 0.0004891274147666991
+    },
+    {
+      "roi_idx": 110,
+      "region": "AVI",
+      "network": "SalVentAttnB",
+      "circuit": "Salience",
+      "saliency_all": 0.0008800654322840273,
+      "saliency_pos": 0.0008683643536642194,
+      "saliency_neg": 0.0008889109012670815,
+      "diff": -2.054654760286212e-05,
+      "signed_all": 0.0004170390893705189,
+      "signed_pos": 0.0003986972151324153,
+      "signed_neg": 0.0004309036012273282
+    },
+    {
+      "roi_idx": 128,
+      "region": "STSdp",
+      "network": "DefaultA",
+      "circuit": "DMN",
+      "saliency_all": 0.0009960769675672054,
+      "saliency_pos": 0.000965296698268503,
+      "saliency_neg": 0.0010193439666181803,
+      "diff": -5.4047268349677324e-05,
+      "signed_all": 0.0004143341211602092,
+      "signed_pos": 0.0003745541034732014,
+      "signed_neg": 0.0004444043734110892
+    },
+    {
+      "roi_idx": 37,
+      "region": "23c",
+      "network": "SalVentAttnA",
+      "circuit": "Salience",
+      "saliency_all": 0.0008121723658405244,
+      "saliency_pos": 0.000803185161203146,
+      "saliency_neg": 0.000818964617792517,
+      "diff": -1.5779456589370966e-05,
+      "signed_all": 0.0004127488355152309,
+      "signed_pos": 0.0004038334882352501,
+      "signed_neg": 0.0004194882931187749
+    },
+    {
+      "roi_idx": 106,
+      "region": "TA2",
+      "network": "SomMotB",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0009585806983523071,
+      "saliency_pos": 0.0009317903313785791,
+      "saliency_neg": 0.000978831434622407,
+      "diff": -4.704110324382782e-05,
+      "signed_all": 0.00038365236832760274,
+      "signed_pos": 0.0003569495165720582,
+      "signed_neg": 0.0004038378538098186
+    },
+    {
+      "roi_idx": 101,
+      "region": "OP2-3",
+      "network": "SomMotB",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008149525965563953,
+      "saliency_pos": 0.0007961943629197776,
+      "saliency_neg": 0.0008291321573778987,
+      "diff": -3.293779445812106e-05,
+      "signed_all": 0.0003804855514317751,
+      "signed_pos": 0.00037888946826569736,
+      "signed_neg": 0.0003816922544501722
+    },
+    {
+      "roi_idx": 64,
+      "region": "10r",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0009123238269239664,
+      "saliency_pos": 0.0008812203304842114,
+      "saliency_neg": 0.0009358343086205423,
+      "diff": -5.461397813633084e-05,
+      "signed_all": 0.00037615056498907506,
+      "signed_pos": 0.0003473278193268925,
+      "signed_neg": 0.0003979378961957991
+    },
+    {
+      "roi_idx": 29,
+      "region": "7m",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0009278206271119416,
+      "saliency_pos": 0.000908682937733829,
+      "saliency_neg": 0.0009422862203791738,
+      "diff": -3.3603282645344734e-05,
+      "signed_all": 0.0003643425297923386,
+      "signed_pos": 0.0003586428938433528,
+      "signed_neg": 0.00036865059519186616
+    },
+    {
+      "roi_idx": 57,
+      "region": "33pr",
+      "network": "SalVentAttnA",
+      "circuit": "Salience",
+      "saliency_all": 0.0007171632023528218,
+      "saliency_pos": 0.0007113213068805635,
+      "saliency_neg": 0.0007215787773020566,
+      "diff": -1.0257470421493053e-05,
+      "signed_all": 0.0003512039838824421,
+      "signed_pos": 0.000341890990966931,
+      "signed_neg": 0.0003582437348086387
+    },
+    {
+      "roi_idx": 105,
+      "region": "PoI2",
+      "network": "SalVentAttnA",
+      "circuit": "Salience",
+      "saliency_all": 0.0007347807404585183,
+      "saliency_pos": 0.000725175195839256,
+      "saliency_neg": 0.0007420417387038469,
+      "diff": -1.6866542864590883e-05,
+      "signed_all": 0.0003450958465691656,
+      "signed_pos": 0.0003178107144776732,
+      "signed_neg": 0.0003657206834759563
+    },
+    {
+      "roi_idx": 32,
+      "region": "v23ab",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0010690074414014816,
+      "saliency_pos": 0.0010351981036365032,
+      "saliency_neg": 0.0010945630492642522,
+      "diff": -5.9364945627748966e-05,
+      "signed_all": 0.00033721752697601914,
+      "signed_pos": 0.00031591628794558346,
+      "signed_neg": 0.00035331890103407204
+    },
+    {
+      "roi_idx": 129,
+      "region": "STSvp",
+      "network": "TempPar",
+      "circuit": "DMN",
+      "saliency_all": 0.0010357212740927935,
+      "saliency_pos": 0.0009948322549462318,
+      "saliency_neg": 0.0010666295420378447,
+      "diff": -7.179728709161282e-05,
+      "signed_all": 0.00032965635182335973,
+      "signed_pos": 0.0002879234089050442,
+      "signed_neg": 0.0003612019936554134
+    },
+    {
+      "roi_idx": 15,
+      "region": "V7",
+      "network": "VisCent",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0008756750030443072,
+      "saliency_pos": 0.0008509816252626479,
+      "saliency_neg": 0.0008943401044234633,
+      "diff": -4.335847916081548e-05,
+      "signed_all": 0.0003287366416770965,
+      "signed_pos": 0.0003099942405242473,
+      "signed_neg": 0.0003429041535127908
+    },
+    {
+      "roi_idx": 39,
+      "region": "24dd",
+      "network": "SomMotA",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0009294516639783978,
+      "saliency_pos": 0.0009141420596279204,
+      "saliency_neg": 0.0009410260245203972,
+      "diff": -2.6883964892476797e-05,
+      "signed_all": 0.0003117115702480078,
+      "signed_pos": 0.00029980516410432756,
+      "signed_neg": 0.00032071233727037907
+    },
+    {
+      "roi_idx": 1,
+      "region": "MST",
+      "network": "DorsAttnA",
+      "circuit": "Executive",
+      "saliency_all": 0.0006701170350424945,
+      "saliency_pos": 0.0006645977264270186,
+      "saliency_neg": 0.0006742895930074155,
+      "diff": -9.69186658039689e-06,
+      "signed_all": 0.0002892790362238884,
+      "signed_pos": 0.0002684623177628964,
+      "signed_neg": 0.00030501410947181284
+    },
+    {
+      "roi_idx": 149,
+      "region": "PGi",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0009506981587037444,
+      "saliency_pos": 0.0009385034791193902,
+      "saliency_neg": 0.0009599167970009148,
+      "diff": -2.1413317881524563e-05,
+      "signed_all": 0.0002657327859196812,
+      "signed_pos": 0.0002399535005679354,
+      "signed_neg": 0.00028521966305561364
+    },
+    {
+      "roi_idx": 154,
+      "region": "PHA2",
+      "network": "DefaultB",
+      "circuit": "DMN",
+      "saliency_all": 0.0008161395089700818,
+      "saliency_pos": 0.000792316859588027,
+      "saliency_neg": 0.0008341476786881685,
+      "diff": -4.1830819100141525e-05,
+      "signed_all": 0.00026423169765621424,
+      "signed_pos": 0.00022801027807872742,
+      "signed_neg": 0.00029161173733882606
+    }
+  ],
+  "roi_signed_top20_negative": [
+    {
+      "roi_idx": 91,
+      "region": "13l",
+      "network": "Limbic_OFC",
+      "circuit": "Salience",
+      "saliency_all": 0.0008440164965577424,
+      "saliency_pos": 0.0008272581035271287,
+      "saliency_neg": 0.0008566830074414611,
+      "diff": -2.942490391433239e-05,
+      "signed_all": -0.0004327453498262912,
+      "signed_pos": -0.0003925343044102192,
+      "signed_neg": -0.00046314095379784703
+    },
+    {
+      "roi_idx": 59,
+      "region": "p32pr",
+      "network": "SalVentAttnA",
+      "circuit": "Salience",
+      "saliency_all": 0.0007615347858518362,
+      "saliency_pos": 0.0007500143256038427,
+      "saliency_neg": 0.0007702421280555427,
+      "diff": -2.0227802451699972e-05,
+      "signed_all": -0.00036984015605412424,
+      "signed_pos": -0.00034263881389051676,
+      "signed_neg": -0.00039040204137563705
+    },
+    {
+      "roi_idx": 147,
+      "region": "PF",
+      "network": "SalVentAttnA",
+      "circuit": "Salience",
+      "saliency_all": 0.0007487930124625564,
+      "saliency_pos": 0.000733420078177005,
+      "saliency_neg": 0.0007604135316796601,
+      "diff": -2.699345350265503e-05,
+      "signed_all": -0.00032745496719144285,
+      "signed_pos": -0.0003051810199394822,
+      "signed_neg": -0.00034429196966812015
+    },
+    {
+      "roi_idx": 65,
+      "region": "47m",
+      "network": "TempPar",
+      "circuit": "DMN",
+      "saliency_all": 0.0008474652422592044,
+      "saliency_pos": 0.0008282454800792038,
+      "saliency_neg": 0.0008619930595159531,
+      "diff": -3.374757943674922e-05,
+      "signed_all": -0.0003185004461556673,
+      "signed_pos": -0.0003135633305646479,
+      "signed_neg": -0.000322232604958117
+    },
+    {
+      "roi_idx": 164,
+      "region": "s32",
+      "network": "Limbic_OFC",
+      "circuit": "Salience",
+      "saliency_all": 0.0008803956443443894,
+      "saliency_pos": 0.0008659181767143309,
+      "saliency_neg": 0.0008913394995033741,
+      "diff": -2.5421322789043188e-05,
+      "signed_all": -0.00031127434340305626,
+      "signed_pos": -0.00026537373196333647,
+      "signed_neg": -0.0003459705039858818
+    },
+    {
+      "roi_idx": 89,
+      "region": "10pp",
+      "network": "Limbic_OFC",
+      "circuit": "Salience",
+      "saliency_all": 0.0007299456628970802,
+      "saliency_pos": 0.0007103829993866384,
+      "saliency_neg": 0.0007447329116985202,
+      "diff": -3.434991231188178e-05,
+      "signed_all": -0.00030999109731055796,
+      "signed_pos": -0.0002912433701567352,
+      "signed_neg": -0.00032416259637102485
+    },
+    {
+      "roi_idx": 8,
+      "region": "3b",
+      "network": "SomMotA",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0009229749557562172,
+      "saliency_pos": 0.0008932365453802049,
+      "saliency_neg": 0.0009454546379856765,
+      "diff": -5.221809260547161e-05,
+      "signed_all": -0.00030671863351017237,
+      "signed_pos": -0.00029784359503537416,
+      "signed_neg": -0.0003134271828457713
+    },
+    {
+      "roi_idx": 34,
+      "region": "31pv",
+      "network": "DefaultC",
+      "circuit": "DMN",
+      "saliency_all": 0.0009154940489679575,
+      "saliency_pos": 0.0009007157059386373,
+      "saliency_neg": 0.0009266645065508783,
+      "diff": -2.594880061224103e-05,
+      "signed_all": -0.0002657750737853348,
+      "signed_pos": -0.0002749066334217787,
+      "signed_neg": -0.00025887269293889403
+    },
+    {
+      "roi_idx": 117,
+      "region": "EC",
+      "network": "Limbic_TempPole",
+      "circuit": "Salience",
+      "saliency_all": 0.0007921135402284563,
+      "saliency_pos": 0.0007721402798779309,
+      "saliency_neg": 0.0008072116761468351,
+      "diff": -3.507139626890421e-05,
+      "signed_all": -0.0002485610020812601,
+      "signed_pos": -0.00021879933774471283,
+      "signed_neg": -0.00027105805929750204
+    },
+    {
+      "roi_idx": 121,
+      "region": "PeEc",
+      "network": "Limbic_TempPole",
+      "circuit": "Salience",
+      "saliency_all": 0.0006355109508149326,
+      "saliency_pos": 0.0006329253083094954,
+      "saliency_neg": 0.0006374657386913896,
+      "diff": -4.540430381894112e-06,
+      "signed_all": -0.00024548909277655184,
+      "signed_pos": -0.00022793714015278965,
+      "signed_neg": -0.0002587565395515412
+    },
+    {
+      "roi_idx": 73,
+      "region": "44",
+      "network": "TempPar",
+      "circuit": "DMN",
+      "saliency_all": 0.0009338079835288227,
+      "saliency_pos": 0.0009113052510656416,
+      "saliency_neg": 0.000950818823184818,
+      "diff": -3.951357211917639e-05,
+      "signed_all": -0.0002379659126745537,
+      "signed_pos": -0.0002172846725443378,
+      "signed_neg": -0.0002535987878218293
+    },
+    {
+      "roi_idx": 56,
+      "region": "p24pr",
+      "network": "SalVentAttnA",
+      "circuit": "Salience",
+      "saliency_all": 0.0008612936944700778,
+      "saliency_pos": 0.0008460319368168712,
+      "saliency_neg": 0.0008728319080546498,
+      "diff": -2.6799971237778664e-05,
+      "signed_all": -0.0002227696677437052,
+      "signed_pos": -0.0002081293350784108,
+      "signed_neg": -0.00023383653024211526
+    },
+    {
+      "roi_idx": 96,
+      "region": "i6-8",
+      "network": "ContC",
+      "circuit": "Executive",
+      "saliency_all": 0.0005920655094087124,
+      "saliency_pos": 0.0005828217254020274,
+      "saliency_neg": 0.0005990528734400868,
+      "diff": -1.6231148038059473e-05,
+      "signed_all": -0.00021237369219306856,
+      "signed_pos": -0.0001988580625038594,
+      "signed_neg": -0.00022259030083660036
+    },
+    {
+      "roi_idx": 171,
+      "region": "TGv",
+      "network": "Limbic_TempPole",
+      "circuit": "Salience",
+      "saliency_all": 0.0011342271463945508,
+      "saliency_pos": 0.0011137202382087708,
+      "saliency_neg": 0.0011497285449877381,
+      "diff": -3.600830677896738e-05,
+      "signed_all": -0.00020597086404450238,
+      "signed_pos": -0.0002154346148017794,
+      "signed_neg": -0.00019881724438164383
+    },
+    {
+      "roi_idx": 80,
+      "region": "IFSp",
+      "network": "ContB",
+      "circuit": "Executive",
+      "saliency_all": 0.0007149796583689749,
+      "saliency_pos": 0.0007001953781582415,
+      "saliency_neg": 0.000726154597941786,
+      "diff": -2.595921978354454e-05,
+      "signed_all": -0.0002040949184447527,
+      "signed_pos": -0.00019839148444589227,
+      "signed_neg": -0.00020840637444052845
+    },
+    {
+      "roi_idx": 125,
+      "region": "PHA1",
+      "network": "DefaultB",
+      "circuit": "DMN",
+      "saliency_all": 0.0009266052511520684,
+      "saliency_pos": 0.0008988292538560927,
+      "saliency_neg": 0.000947600114159286,
+      "diff": -4.877086030319333e-05,
+      "signed_all": -0.00019188641454093158,
+      "signed_pos": -0.00019088915723841637,
+      "signed_neg": -0.0001926403201650828
+    },
+    {
+      "roi_idx": 109,
+      "region": "Pir",
+      "network": "Limbic_TempPole",
+      "circuit": "Salience",
+      "saliency_all": 0.0006216642796061933,
+      "saliency_pos": 0.0006083608604967594,
+      "saliency_neg": 0.0006317190127447248,
+      "diff": -2.3358152247965336e-05,
+      "signed_all": -0.00018864621233660728,
+      "signed_pos": -0.00017906096763908863,
+      "signed_neg": -0.00019589168368838727
+    },
+    {
+      "roi_idx": 3,
+      "region": "V2",
+      "network": "VisPeri",
+      "circuit": "SensoriMotor",
+      "saliency_all": 0.0007335158297792077,
+      "saliency_pos": 0.000722557888366282,
+      "saliency_neg": 0.0007417984306812286,
+      "diff": -1.924054231494665e-05,
+      "signed_all": -0.00018236992764286697,
+      "signed_pos": -0.00017834843310993165,
+      "signed_neg": -0.00018540973542258143
+    },
+    {
+      "roi_idx": 45,
+      "region": "7Pl",
+      "network": "DorsAttnA",
+      "circuit": "Executive",
+      "saliency_all": 0.0006379537517204881,
+      "saliency_pos": 0.0006232555606402457,
+      "saliency_neg": 0.0006490641389973462,
+      "diff": -2.5808578357100487e-05,
+      "signed_all": -0.00018219731282442808,
+      "signed_pos": -0.00018043811724055558,
+      "signed_neg": -0.00018352697952650487
+    },
+    {
+      "roi_idx": 55,
+      "region": "6v",
+      "network": "DorsAttnB",
+      "circuit": "Executive",
+      "saliency_all": 0.000555481412447989,
+      "saliency_pos": 0.0005447962321341038,
+      "saliency_neg": 0.0005635583074763417,
+      "diff": -1.876207534223795e-05,
+      "signed_all": -0.00018166276277042925,
+      "signed_pos": -0.00016272248467430472,
+      "signed_neg": -0.0001959797227755189
+    }
+  ],
+  "input_weight_analysis": {
+    "DMN": {
+      "network_summary": {
+        "TempPar": {
+          "mean_weight_norm": 0.7260601083437602,
+          "std_weight_norm": 0.06640414518190933,
+          "max_weight_norm": 0.8852195143699646,
+          "n_rois": 15
+        },
+        "DefaultA": {
+          "mean_weight_norm": 0.7247808933258056,
+          "std_weight_norm": 0.06116330653636804,
+          "max_weight_norm": 0.8090105056762695,
+          "n_rois": 5
+        },
+        "DefaultC": {
+          "mean_weight_norm": 0.7482470721006393,
+          "std_weight_norm": 0.041070014546308486,
+          "max_weight_norm": 0.8159511089324951,
+          "n_rois": 16
+        },
+        "DefaultB": {
+          "mean_weight_norm": 0.7301835656166077,
+          "std_weight_norm": 0.06450502470246375,
+          "max_weight_norm": 0.8184448480606079,
+          "n_rois": 5
+        }
+      },
+      "top_rois": [
+        {
+          "global_roi_idx": 70,
+          "region": "9p",
+          "local_roi_idx": 16,
+          "network": "TempPar",
+          "weight_norm": 0.8852195143699646
+        },
+        {
+          "global_roi_idx": 126,
+          "region": "PHA3",
+          "local_roi_idx": 28,
+          "network": "DefaultB",
+          "weight_norm": 0.8184448480606079
+        },
+        {
+          "global_roi_idx": 149,
+          "region": "PGi",
+          "local_roi_idx": 34,
+          "network": "DefaultC",
+          "weight_norm": 0.8159511089324951
+        },
+        {
+          "global_roi_idx": 32,
+          "region": "v23ab",
+          "local_roi_idx": 5,
+          "network": "DefaultC",
+          "weight_norm": 0.8101548552513123
+        },
+        {
+          "global_roi_idx": 128,
+          "region": "STSdp",
+          "local_roi_idx": 30,
+          "network": "DefaultA",
+          "weight_norm": 0.8090105056762695
+        },
+        {
+          "global_roi_idx": 175,
+          "region": "STSva",
+          "local_roi_idx": 38,
+          "network": "TempPar",
+          "weight_norm": 0.8079327344894409
+        },
+        {
+          "global_roi_idx": 34,
+          "region": "31pv",
+          "local_roi_idx": 7,
+          "network": "DefaultC",
+          "weight_norm": 0.8025129437446594
+        },
+        {
+          "global_roi_idx": 97,
+          "region": "s6-8",
+          "local_roi_idx": 23,
+          "network": "DefaultC",
+          "weight_norm": 0.7969857454299927
+        },
+        {
+          "global_roi_idx": 73,
+          "region": "44",
+          "local_roi_idx": 18,
+          "network": "TempPar",
+          "weight_norm": 0.7910388708114624
+        },
+        {
+          "global_roi_idx": 125,
+          "region": "PHA1",
+          "local_roi_idx": 27,
+          "network": "DefaultB",
+          "weight_norm": 0.7826318144798279
+        }
+      ]
+    },
+    "Executive": {
+      "network_summary": {
+        "DorsAttnA": {
+          "mean_weight_norm": 0.6842659153044224,
+          "std_weight_norm": 0.04194210659928746,
+          "max_weight_norm": 0.7426170110702515,
+          "n_rois": 16
+        },
+        "DorsAttnB": {
+          "mean_weight_norm": 0.6948242112994194,
+          "std_weight_norm": 0.04805069348243605,
+          "max_weight_norm": 0.7647128105163574,
+          "n_rois": 8
+        },
+        "ContB": {
+          "mean_weight_norm": 0.7159638106822968,
+          "std_weight_norm": 0.05208842689691543,
+          "max_weight_norm": 0.8293497562408447,
+          "n_rois": 12
+        },
+        "ContA": {
+          "mean_weight_norm": 0.6752434611320496,
+          "std_weight_norm": 0.03596292773233654,
+          "max_weight_norm": 0.731102466583252,
+          "n_rois": 5
+        },
+        "ContC": {
+          "mean_weight_norm": 0.7160351601513949,
+          "std_weight_norm": 0.03960010681431455,
+          "max_weight_norm": 0.7931898832321167,
+          "n_rois": 11
+        }
+      },
+      "top_rois": [
+        {
+          "global_roi_idx": 80,
+          "region": "IFSp",
+          "local_roi_idx": 26,
+          "network": "ContB",
+          "weight_norm": 0.8293497562408447
+        },
+        {
+          "global_roi_idx": 148,
+          "region": "PFm",
+          "local_roi_idx": 45,
+          "network": "ContC",
+          "weight_norm": 0.7931898832321167
+        },
+        {
+          "global_roi_idx": 88,
+          "region": "a10p",
+          "local_roi_idx": 30,
+          "network": "ContC",
+          "weight_norm": 0.7855418920516968
+        },
+        {
+          "global_roi_idx": 77,
+          "region": "6r",
+          "local_roi_idx": 23,
+          "network": "ContB",
+          "weight_norm": 0.7853285074234009
+        },
+        {
+          "global_roi_idx": 38,
+          "region": "5L",
+          "local_roi_idx": 10,
+          "network": "DorsAttnB",
+          "weight_norm": 0.7647128105163574
+        },
+        {
+          "global_roi_idx": 78,
+          "region": "IFJa",
+          "local_roi_idx": 24,
+          "network": "ContB",
+          "weight_norm": 0.7607092261314392
+        },
+        {
+          "global_roi_idx": 79,
+          "region": "IFJp",
+          "local_roi_idx": 25,
+          "network": "ContB",
+          "weight_norm": 0.7556288242340088
+        },
+        {
+          "global_roi_idx": 41,
+          "region": "7AL",
+          "local_roi_idx": 11,
+          "network": "DorsAttnB",
+          "weight_norm": 0.7538043856620789
+        },
+        {
+          "global_roi_idx": 1,
+          "region": "MST",
+          "local_roi_idx": 0,
+          "network": "DorsAttnA",
+          "weight_norm": 0.7426170110702515
+        },
+        {
+          "global_roi_idx": 169,
+          "region": "p10p",
+          "local_roi_idx": 50,
+          "network": "ContC",
+          "weight_norm": 0.7403583526611328
+        }
+      ]
+    },
+    "Salience": {
+      "network_summary": {
+        "SalVentAttnA": {
+          "mean_weight_norm": 0.6974303691010726,
+          "std_weight_norm": 0.048930696609279206,
+          "max_weight_norm": 0.7774296402931213,
+          "n_rois": 19
+        },
+        "SalVentAttnB": {
+          "mean_weight_norm": 0.7176790907979012,
+          "std_weight_norm": 0.02559094838507583,
+          "max_weight_norm": 0.7508910894393921,
+          "n_rois": 8
+        },
+        "Limbic_OFC": {
+          "mean_weight_norm": 0.7308656647801399,
+          "std_weight_norm": 0.0664953584566855,
+          "max_weight_norm": 0.8306190371513367,
+          "n_rois": 8
+        },
+        "Limbic_TempPole": {
+          "mean_weight_norm": 0.7170656522115072,
+          "std_weight_norm": 0.08685172000627679,
+          "max_weight_norm": 0.9029854536056519,
+          "n_rois": 9
+        }
+      },
+      "top_rois": [
+        {
+          "global_roi_idx": 134,
+          "region": "TF",
+          "local_roi_idx": 32,
+          "network": "Limbic_TempPole",
+          "weight_norm": 0.9029854536056519
+        },
+        {
+          "global_roi_idx": 92,
+          "region": "OFC",
+          "local_roi_idx": 16,
+          "network": "Limbic_OFC",
+          "weight_norm": 0.8306190371513367
+        },
+        {
+          "global_roi_idx": 171,
+          "region": "TGv",
+          "local_roi_idx": 41,
+          "network": "Limbic_TempPole",
+          "weight_norm": 0.8063408732414246
+        },
+        {
+          "global_roi_idx": 164,
+          "region": "s32",
+          "local_roi_idx": 37,
+          "network": "Limbic_OFC",
+          "weight_norm": 0.7890294790267944
+        },
+        {
+          "global_roi_idx": 165,
+          "region": "pOFC",
+          "local_roi_idx": 38,
+          "network": "Limbic_OFC",
+          "weight_norm": 0.7776420712471008
+        },
+        {
+          "global_roi_idx": 43,
+          "region": "6ma",
+          "local_roi_idx": 5,
+          "network": "SalVentAttnA",
+          "weight_norm": 0.7774296402931213
+        },
+        {
+          "global_roi_idx": 163,
+          "region": "25",
+          "local_roi_idx": 36,
+          "network": "Limbic_OFC",
+          "weight_norm": 0.7722148895263672
+        },
+        {
+          "global_roi_idx": 40,
+          "region": "24dv",
+          "local_roi_idx": 3,
+          "network": "SalVentAttnA",
+          "weight_norm": 0.7658804655075073
+        },
+        {
+          "global_roi_idx": 177,
+          "region": "PI",
+          "local_roi_idx": 42,
+          "network": "SalVentAttnA",
+          "weight_norm": 0.7658411860466003
+        },
+        {
+          "global_roi_idx": 113,
+          "region": "FOP3",
+          "local_roi_idx": 26,
+          "network": "SalVentAttnA",
+          "weight_norm": 0.751488208770752
+        }
+      ]
+    },
+    "SensoriMotor": {
+      "network_summary": {
+        "VisPeri": {
+          "mean_weight_norm": 0.6814762875437737,
+          "std_weight_norm": 0.052153733810923385,
+          "max_weight_norm": 0.7626498341560364,
+          "n_rois": 8
+        },
+        "VisCent": {
+          "mean_weight_norm": 0.6899681836366653,
+          "std_weight_norm": 0.05199355936307538,
+          "max_weight_norm": 0.7706884741783142,
+          "n_rois": 12
+        },
+        "SomMotA": {
+          "mean_weight_norm": 0.7193708419799805,
+          "std_weight_norm": 0.047973554212394603,
+          "max_weight_norm": 0.8047788143157959,
+          "n_rois": 9
+        },
+        "SomMotB": {
+          "mean_weight_norm": 0.7204755544662476,
+          "std_weight_norm": 0.051893509045546814,
+          "max_weight_norm": 0.822199285030365,
+          "n_rois": 14
+        }
+      },
+      "top_rois": [
+        {
+          "global_roi_idx": 23,
+          "region": "A1",
+          "local_roi_idx": 15,
+          "network": "SomMotB",
+          "weight_norm": 0.822199285030365
+        },
+        {
+          "global_roi_idx": 39,
+          "region": "24dd",
+          "local_roi_idx": 17,
+          "network": "SomMotA",
+          "weight_norm": 0.8047788143157959
+        },
+        {
+          "global_roi_idx": 53,
+          "region": "6d",
+          "local_roi_idx": 21,
+          "network": "SomMotA",
+          "weight_norm": 0.7818478941917419
+        },
+        {
+          "global_roi_idx": 174,
+          "region": "A4",
+          "local_roi_idx": 42,
+          "network": "SomMotB",
+          "weight_norm": 0.7802878618240356
+        },
+        {
+          "global_roi_idx": 4,
+          "region": "V3",
+          "local_roi_idx": 3,
+          "network": "VisCent",
+          "weight_norm": 0.7706884741783142
+        },
+        {
+          "global_roi_idx": 173,
+          "region": "LBelt",
+          "local_roi_idx": 41,
+          "network": "SomMotB",
+          "weight_norm": 0.7648405432701111
+        },
+        {
+          "global_roi_idx": 159,
+          "region": "VMV2",
+          "local_roi_idx": 37,
+          "network": "VisPeri",
+          "weight_norm": 0.7626498341560364
+        },
+        {
+          "global_roi_idx": 54,
+          "region": "6mp",
+          "local_roi_idx": 22,
+          "network": "SomMotA",
+          "weight_norm": 0.7572537660598755
+        },
+        {
+          "global_roi_idx": 162,
+          "region": "VVC",
+          "local_roi_idx": 38,
+          "network": "VisCent",
+          "weight_norm": 0.7552731037139893
+        },
+        {
+          "global_roi_idx": 123,
+          "region": "PBelt",
+          "local_roi_idx": 31,
+          "network": "SomMotB",
+          "weight_norm": 0.752321183681488
+        }
+      ]
+    }
+  }
+}

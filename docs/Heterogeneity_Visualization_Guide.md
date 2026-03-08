@@ -1,16 +1,24 @@
 # Heterogeneity Visualization Guide
 
-> **NOTE (2026-03-07):** The example visualizations referenced in this guide were generated using an **incorrect Yeo-17 network mapping**. The visualization pipeline itself is valid and will work correctly with v5 checkpoints (corrected mapping).
-
-**Date**: 2026-03-07
+**Date**: 2026-03-08 (updated with v5 results and multi-K analysis)
 **Script**: `visualize_heterogeneity.py`
 **Data source**: `analyze_heterogeneity.py` output (NPZ + JSON per model)
+**Mapping**: Corrected Yeo-17 (v5, bilateral volumetric overlap)
 
 ## Overview
 
 The Circuit MoE heterogeneity analysis asks: **are all ADHD+ subjects the same, or do they break into neurobiologically distinct subtypes?** Rather than treating ADHD as a single category, we cluster ADHD+ subjects based on how the trained model processes their brain data. The MoE architecture provides a natural hierarchy for this analysis — we can cluster at the level of circuit routing (gate weights), network-level processing (expert outputs), or fine-grained ROI importance (projection activations).
 
 Five visualizations are generated per model, organized from coarsest (circuit) to finest (ROI) granularity, plus two summary metrics (silhouette sweep and cross-level concordance).
+
+**Output directories**: `analysis/heterogeneity_v5_{model_type}_{config}/figures/`
+
+| Model | K=3 Directory | Multi-K Directories (K=2,4,5) |
+|-------|---------------|-------------------------------|
+| Classical 4-expert | `heterogeneity_v5_classical_adhd_3/` | `..._k2/`, `..._k4/`, `..._k5/` |
+| Classical 2-expert | `heterogeneity_v5_classical_adhd_2/` | `..._k2/`, `..._k4/`, `..._k5/` |
+| Quantum 4-expert | `heterogeneity_v5_quantum_8q_d3_adhd_3/` | `..._k2/`, `..._k4/`, `..._k5/` |
+| Quantum 2-expert | `heterogeneity_v5_quantum_8q_d3_adhd_2/` | `..._k2/`, `..._k4/`, `..._k5/` |
 
 ---
 
@@ -46,11 +54,13 @@ A line plot of silhouette score versus the number of clusters K (from 2 to 6), c
 
 - **High silhouette at K=2 (e.g., 0.96)** means gate weight vectors naturally split into two well-separated groups. This is expected when load balancing keeps most subjects near uniform routing, with a small outlier group.
 - **Declining silhouette as K increases** suggests the data does not naturally support many distinct clusters — additional clusters are artificially splitting a continuous distribution.
-- **The gap between "Best K" and "Used K"** reflects a trade-off: K=2 may have the best separation but is too coarse to reveal subtypes; K=3 allows exploration of finer structure at the cost of lower silhouette.
+- **The gap between "Best K" and "Used K"** reflects a trade-off: K=2 may have the best separation but is too coarse to reveal subtypes; K=3 or higher allows exploration of finer structure at the cost of lower silhouette.
 
-### Scientific Findings
+### v5 Scientific Findings
 
-In the 4-expert classical model, K=2 achieves silhouette 0.96 and K=3 achieves 0.78. This indicates that circuit-level routing is dominated by a binary split (near-uniform vs outlier) rather than multiple distinct routing strategies. The load balancing auxiliary loss (alpha=0.1) constrains gate weights to stay near uniform, limiting the model's ability to produce diverse routing patterns — and thus limiting circuit-level heterogeneity.
+**Circuit-level (gate weight) silhouette**: Best at K=2 across all 4 models (0.39–0.97), confirming that routing is dominated by a binary split (near-uniform majority vs outlier minority). The load balancing auxiliary loss constrains gate weights, limiting circuit-level heterogeneity.
+
+**ROI-level silhouette** (from the separate stability analysis, not this figure): Also best at K=2 (0.42–0.43) across all 4 models, but K=4-5 reveals additional subtypes (particularly SalVentAttnA) that K=2-3 misses. The trade-off between cluster quality (silhouette) and subtype resolution (number of meaningful subtypes) favors K=4-5 for comprehensive subtyping.
 
 ---
 
@@ -78,14 +88,16 @@ Side-by-side bar charts, one per cluster, showing the mean gate weight for each 
 - **Small error bars**: Subjects within the cluster are homogeneous in their routing pattern.
 - **Large error bars**: Within-cluster heterogeneity; the cluster may be artificially combining different routing patterns.
 
-### Scientific Findings
+### v5 Scientific Findings
 
-In the 4-expert model with K=3:
-- **Cluster 1 (N=272, 94.4%)** has near-uniform weights with slight Salience elevation (0.256). This is the "typical" ADHD routing pattern — the vast majority of subjects.
-- **Cluster 0 (N=15, 5.2%)** shows moderate Salience elevation (0.289) with reduced Executive (0.227). These subjects may have a more salience-network-driven ADHD presentation.
-- **Cluster 2 (N=1, 0.3%)** is a single extreme outlier with Salience weight 0.589 — the model routes nearly 60% of this subject's data through the Salience expert.
+**4-expert models** (both classical and quantum):
+- One dominant cluster (~94%) has near-uniform gate weights — load balancing prevents differentiation.
+- A small rare cluster (1-5%) shows elevated routing to one specific expert. In the classical model, this is Salience-dominant; in the quantum model, it differs (SensoriMotor or DMN-dominant).
+- **Key insight**: Circuit-level routing subtypes are architecture-dependent — classical and quantum models identify different rare routing patterns. However, they converge at ROI level (see Figure 4).
 
-The imbalance reveals that **load-balanced gating suppresses circuit-level heterogeneity**. The auxiliary loss penalizes unequal expert utilization across the batch, which forces most subjects into similar routing patterns. Individual-level subtyping requires looking deeper — at the network or ROI level.
+**2-expert models**:
+- More balanced cluster sizes (~40/60%) because the 2D gate weight space allows cleaner separation.
+- The quantum 2-expert model produces the most meaningful circuit-level split (statistically significant class-conditional routing, p=0.038).
 
 ---
 
@@ -127,7 +139,7 @@ Two panels:
 #### PCA Scatter
 - **Well-separated colored groups**: Clusters capture genuine structure in expert output space. Subjects in different clusters have meaningfully different expert processing patterns.
 - **Overlapping groups**: Clusters are less distinct; the 256D separation doesn't fully project into 2D.
-- **Variance explained (axis labels)**: If PC1 explains >50%, a single dominant axis of variation drives the clustering. If PC1 and PC2 are roughly equal (e.g., 30%/25%), the variation is more multi-dimensional.
+- **Variance explained (axis labels)**: If PC1 explains >50%, a single dominant axis of variation drives the clustering. If PC1 and PC2 are roughly equal, the variation is more multi-dimensional.
 - **Outliers**: Isolated points far from cluster centers may represent atypical ADHD presentations.
 
 #### Radar Chart
@@ -136,14 +148,11 @@ Two panels:
 - **Similar polygon shapes across clusters**: Clusters differ in magnitude (overall activation level) rather than pattern (which circuits are engaged).
 - **Different polygon shapes**: Clusters represent qualitatively different patterns of brain circuit engagement — the strongest evidence for neurobiological subtypes.
 
-### Scientific Findings
+### v5 Scientific Findings
 
-In the 4-expert model:
-- **Cluster 0 (N=71, Executive-dominant)**: Highest Executive expert norm (4.11), lowest SensoriMotor (1.80). On the radar chart, the polygon stretches toward Executive and Salience. These subjects may represent an ADHD subtype where cognitive control dysfunction is primary.
-- **Cluster 1 (N=139, DMN-dominant)**: Highest DMN norm (4.58) and highest SensoriMotor (2.60). The polygon stretches toward DMN. This is the largest subgroup and may correspond to the "classic" ADHD presentation involving default mode network dysregulation.
-- **Cluster 2 (N=78, Balanced)**: Relatively uniform expert norms. No single circuit dominates — these subjects may have a less differentiated ADHD phenotype.
-
-The PCA scatter (PC1=52.2%, PC2=26.8%) shows three groups with partial overlap, indicating genuine but not perfectly separable subtypes. The 79% variance captured in 2D suggests the clustering structure is largely two-dimensional.
+- **Classical models** show higher network-level silhouette (0.35–0.40) than quantum models (0.17–0.21), meaning classical expert outputs are more separable into clusters.
+- Quantum expert outputs are more distributed, possibly due to entanglement spreading information across output dimensions.
+- Network-level clusters are model-specific and do not directly correspond to the ROI-level Limbic subtypes.
 
 ---
 
@@ -175,7 +184,7 @@ The product is **signed**: a positive score means the ROI's activation pattern p
 
 #### PCA Scatter (Left Panel)
 
-1. Run K-means (K=3) on the 180D signed ROI score vectors of ADHD+ subjects.
+1. Run K-means (K=3 default, or K=2/4/5 for multi-K analyses) on the 180D signed ROI score vectors of ADHD+ subjects.
 2. Apply PCA to reduce to 2D.
 3. Plot each subject colored by cluster.
 
@@ -188,7 +197,7 @@ The product is **signed**: a positive score means the ROI's activation pattern p
 
 2. Display as a heatmap with a diverging red-blue colormap:
    - **Red (+)**: Positive signed score → network activation is associated with ADHD+ in this cluster
-   - **Blue (-)**: Negative signed score → network activation is associated with ADHD- (i.e., lower activation = more ADHD-like) in this cluster
+   - **Blue (-)**: Negative signed score → network activation is associated with ADHD- in this cluster
    - **White (0)**: No directional association
 
 ### How to Interpret
@@ -196,23 +205,29 @@ The product is **signed**: a positive score means the ROI's activation pattern p
 #### PCA Scatter
 - **Separated clusters in PCA space**: Subjects have genuinely different ROI-level brain signatures.
 - **One tight cluster + scattered outliers**: Most subjects share a common ROI pattern; outliers represent rare subtypes.
-- **Variance explained**: If PC1 captures a large fraction (>30%), a single dominant axis of variation (e.g., overall activation level) drives the clustering.
+- **Variance explained**: If PC1 captures a large fraction (>30%), a single dominant axis of variation drives the clustering.
 
 #### Network Heatmap
-- **Uniformly blue row**: That cluster's subjects show negative signed scores across all networks — their brain activation is generally associated with ADHD- (typical hypoactivation pattern).
-- **Uniformly red row**: That cluster shows positive scores across all networks — their activation is generally associated with ADHD+ (atypical hyperactivation pattern).
-- **Mixed red/blue row**: That cluster has a specific pattern — some networks positively associated, others negatively. This is the most informative for subtyping.
-- **Columns with consistent color across rows**: That network behaves similarly in all subtypes (e.g., SensoriMotor networks may be consistently positive across all clusters).
-- **Columns with different colors across rows**: That network distinguishes subtypes (e.g., DefaultA is blue in Cluster 0 but red in Cluster 1 → DMN hypoactivation vs hyperactivation subtypes).
+- **Row with strong red in Limbic_TempPole**: That cluster shows the Limbic_TempPole subtype — temporal pole regions strongly associated with ADHD+. Look for PeEc, TGv, TGd, TF, EC as top ROIs.
+- **Row with strong red in Limbic_OFC**: The Limbic_OFC subtype — orbitofrontal regions associated with ADHD+. Look for OFC, 13l, pOFC, 10pp as top ROIs.
+- **Row with strong red in SalVentAttnA** (K≥4 only): The insular/salience subtype — anterior/posterior insula and frontal operculum associated with ADHD+. Look for PI, AAIC, FOP1/2, PoI1 as top ROIs.
+- **Near-white row**: A diffuse cluster with no strong directional associations. These subjects may represent milder or more heterogeneous ADHD presentations.
+- **Row with strong blue across most networks**: These subjects show widespread negative signed scores — a general hypoactivation pattern.
+- **Columns with consistent color across rows**: That network behaves similarly in all subtypes.
+- **Columns with different colors across rows**: That network distinguishes subtypes.
 
-### Scientific Findings
+### v5 Scientific Findings
 
-In the 4-expert model:
-- **Cluster 0 (N=92, 31.9%)**: All-blue heatmap. All networks show negative signed scores. This represents the "canonical" ADHD pattern — widespread hypoactivation, consistent with the population-level gradient saliency finding.
-- **Cluster 1 (N=22, 7.6%)**: Strikingly different — strong red in DefaultA, DefaultB, DefaultC, ContA. This rare subtype shows **DMN hyperactivation** associated with ADHD+, the opposite of the population-level pattern. In the PCA scatter, these 22 subjects are clearly separated from the main group. This is the most scientifically interesting finding: a small but distinct ADHD subtype with reversed DMN polarity.
-- **Cluster 2 (N=174, 60.4%)**: Near-white heatmap (very small scores). These subjects have a weak, diffuse ROI pattern — the model does not assign strong directional importance to any network. This may represent subjects near the ADHD/non-ADHD classification boundary.
+**K=3 (default visualization):**
+- **Limbic_TempPole subtype (~8% of ADHD+)**: Small cluster with extreme positive signed scores in temporal pole networks. PeEc, TGv, TGd, TF, EC are always the top 5 +ADHD ROIs. Replicated across all 4 models. **Tier 1 confidence.**
+- **Limbic_OFC subtype (~33% of ADHD+)**: Larger cluster with OFC-dominant positive signed scores. OFC, 13l, 10pp, pOFC are characteristic ROIs. Replicated across all 4 models. **Tier 1 confidence.**
+- **Diffuse majority (~59%)**: Near-zero signed scores across all networks.
 
-The discovery of a DMN-positive subtype (Cluster 1) is notable because it challenges the uniform "DMN hypoactivation in ADHD" narrative from the literature (Castellanos & Proal 2012). This aligns with recent ADHD biotype work (Feng 2024, Pan 2026) showing that ADHD is neurobiologically heterogeneous, with distinct brain signatures mapping to different clinical presentations.
+**K=4-5 (multi-K analysis):**
+- All K=3 subtypes persist, plus a **new SalVentAttnA (insular/salience) subtype** emerges (~35% of ADHD+), characterized by anterior insula (AAIC), posterior insula (PI), and frontal operculum (FOP1/2) ROIs. Replicated across all 4 models at both K=4 and K=5. **Tier 1 confidence.**
+- The Limbic_TempPole cluster shrinks to a tight core (~5 subjects at K=5) with intensifying signed scores, while the ROI identity remains identical.
+
+See `docs/Interpretability_Heterogeneity_v5_Results.md` Section 11.6 for complete multi-K analysis.
 
 ---
 
@@ -243,46 +258,60 @@ The Adjusted Rand Index measures agreement between two clustering assignments on
 ### How to Interpret
 
 - **All bars near zero**: Each analysis level captures independent heterogeneity dimensions. A subject's circuit-level subtype does not predict their ROI-level subtype. This means the three levels provide complementary (not redundant) information about ADHD heterogeneity.
-- **One high bar (e.g., Network vs ROI = 0.5+)**: Those two levels partially agree — network-level clusters reflect similar structure as ROI-level clusters, suggesting one level may be a coarser view of the other.
-- **Circuit vs others near zero, Network vs ROI moderate**: Circuit-level routing (gate weights) is too constrained by load balancing to capture the same structure as network/ROI levels. The finer-grained levels share more structure.
+- **One high bar (e.g., Network vs ROI = 0.5+)**: Those two levels partially agree — network-level clusters reflect similar structure as ROI-level clusters.
+- **Circuit vs others near zero, Network vs ROI moderate**: Circuit-level routing is too constrained by load balancing to capture the same structure as network/ROI levels.
 
-### Scientific Findings
+### v5 Scientific Findings
 
-In the 4-expert model:
-- Circuit vs Network: ARI = 0.026
-- Circuit vs ROI: ARI = 0.067
-- Network vs ROI: ARI = 0.131
+ARI values are near zero across all 4 models (typically 0.02–0.13), confirming that **heterogeneity is multi-dimensional**. The slightly higher Network-ROI concordance in some models suggests that expert output patterns and ROI importance scores share some structure — both capture aspects of how the model processes each subject's brain data.
 
-All values are near zero, confirming that **heterogeneity is multi-dimensional**. The slightly higher Network-ROI concordance (0.131) suggests that expert output patterns and ROI importance scores share some structure — both capture aspects of how the model internally processes each subject's brain data, whereas circuit-level routing is too constrained to align with either.
-
-This has a practical implication: **characterizing ADHD subtypes requires multi-level analysis**. Reporting only circuit-level (gate weight) clusters would miss the ROI-level DMN-positive subtype entirely. Reporting only ROI-level clusters would miss the network-level Executive-dominant vs DMN-dominant distinction. The MoE architecture's multi-level representations enable richer subtyping than a single analysis level could provide.
+**Practical implication**: Characterizing ADHD subtypes requires multi-level analysis. The Limbic_TempPole and Limbic_OFC subtypes exist only at Level 3 (ROI) — they are completely invisible at Level 1 (Circuit) or Level 2 (Network). Conversely, circuit-level routing differences capture complementary information about how the model processes different subjects.
 
 ---
 
 ## Summary: From Visualization to Scientific Claims
 
-| Figure | Primary Question | Key Metric | Strongest Finding |
-|--------|-----------------|------------|-------------------|
-| Silhouette Sweep | How many subtypes exist? | Silhouette score | K=2 optimal (0.96), suggesting binary split at circuit level |
-| Circuit-Level Clusters | Do subtypes differ in brain circuit routing? | Gate weight profiles | Load balancing constrains routing; 94.4% in one cluster |
-| Network-Level Clusters | Do subtypes differ in expert processing? | Expert output norms (PCA + radar) | 3 balanced subtypes: Executive-dominant, DMN-dominant, Balanced |
-| ROI-Level Clusters | Do subtypes differ in individual brain region engagement? | Signed ROI scores (PCA + heatmap) | Rare DMN-positive subtype (7.6%) with reversed polarity |
+| Figure | Primary Question | Key Metric | v5 Strongest Finding |
+|--------|-----------------|------------|---------------------|
+| Silhouette Sweep | How many subtypes exist? | Silhouette score | K=2 optimal (0.42-0.97 depending on level), but K=4-5 reveals SalVentAttnA subtype |
+| Circuit-Level Clusters | Do subtypes differ in brain circuit routing? | Gate weight profiles | Load balancing constrains routing; 94% in one cluster for 4-expert models |
+| Network-Level Clusters | Do subtypes differ in expert processing? | Expert output norms (PCA + radar) | Classical more separable than quantum; model-specific patterns |
+| ROI-Level Clusters | Do subtypes differ in individual brain region engagement? | Signed ROI scores (PCA + heatmap) | **Three robust subtypes**: Limbic_TempPole (~8%), Limbic_OFC (~33%), SalVentAttnA (~35% at K≥4) |
 | Cross-Level ARI | Are subtypes consistent across levels? | Adjusted Rand Index | Near-zero ARI: independent heterogeneity dimensions |
 
 ### How the Visualizations Build a Narrative
 
 1. **Silhouette sweep** establishes that natural clustering exists (high silhouette at K=2) but is limited at the circuit level.
 2. **Circuit-level clusters** confirm this limitation — load balancing produces a single dominant routing pattern.
-3. **Network-level clusters** reveal that looking deeper (at expert outputs rather than gate weights) uncovers 3 balanced, interpretable subtypes.
-4. **ROI-level clusters** provide the finest resolution, discovering a rare but distinctive DMN-positive subtype invisible at coarser levels.
+3. **Network-level clusters** reveal that looking deeper (at expert outputs rather than gate weights) uncovers model-specific subtypes with varying expert engagement patterns.
+4. **ROI-level clusters** provide the finest resolution, discovering three robust subtypes replicated across all 4 models: Limbic_TempPole (memory/emotion), Limbic_OFC (reward/impulse control), and SalVentAttnA (attentional salience — visible at K≥4).
 5. **Cross-level ARI** demonstrates that these three levels capture independent information, justifying the multi-level approach.
 
-The overall narrative: **ADHD heterogeneity in the Circuit MoE model is real but multi-dimensional.** The MoE architecture provides a natural hierarchy for subtyping — from coarse routing patterns to fine-grained ROI signatures — and each level reveals structure invisible to the others.
+The overall narrative: **ADHD heterogeneity in the Circuit MoE model is real, multi-dimensional, and neurobiologically interpretable.** The MoE architecture provides a natural hierarchy for subtyping — from coarse routing patterns to fine-grained ROI signatures — and each level reveals structure invisible to the others. The most robust findings are the three ROI-level subtypes (Tier 1 confidence), which align with three major theoretical models of ADHD neurobiology: fronto-limbic (TempPole), fronto-striatal/OFC (reward), and salience/attention (insula).
+
+### Multi-K Visualization Note
+
+The default visualizations are generated at K=3. For multi-K results (K=2, 4, 5), additional output directories exist with the suffix `_k{K}` (e.g., `heterogeneity_v5_classical_adhd_3_k4/`). Each contains the same 5 figures but with the specified K value. Key differences:
+
+- **K=2**: Cleanest separation (highest silhouette); shows the binary Limbic_TempPole vs OFC/mixed split.
+- **K=4**: The SalVentAttnA subtype first emerges as a distinct cluster.
+- **K=5**: Three clear subtypes visible (TempPole, OFC, SalVentAttnA) plus diffuse clusters. The Limbic_TempPole cluster shrinks to its extreme core (~5 subjects).
+
+## Cross-References
+
+- Full numerical results: `docs/Interpretability_Heterogeneity_v5_Results.md` (Sections 7-11)
+- Multi-K analysis details: `docs/Interpretability_Heterogeneity_v5_Results.md` (Section 11.6)
+- Subtype stability test: `test_subtype_stability.py`
+- Interpretability visualization guide: `docs/Interpretability_Visualization_Guide.md`
+- Confidence framework: `docs/Interpretability_Heterogeneity_v5_Results.md` (Section 12)
+- Terminology (ADHD+ vs +ADHD): `docs/Interpretability_Heterogeneity_v5_Results.md` (Terminology section)
 
 ## References
 
 1. Rousseeuw, P. J. (1987). Silhouettes: a graphical aid to the interpretation and validation of cluster analysis. *J. Comput. Appl. Math.*, 20, 53-65.
 2. Hubert, L., & Arabie, P. (1985). Comparing partitions. *J. Classification*, 2(1), 193-218. (Adjusted Rand Index)
-3. Feng, A., et al. (2024). Functional imaging derived ADHD biotypes. *EClinicalMedicine*, 77, 102876.
-4. Pan, N., et al. (2026). Mapping ADHD heterogeneity and biotypes. *JAMA Psychiatry*.
-5. Castellanos, F. X., & Proal, E. (2012). Large-scale brain systems in ADHD. *Neuropsychopharmacology*, 37(1), 247-259.
+3. Menon V, Uddin LQ. Saliency, switching, attention and control: a network model of insula function. *Brain Struct Funct*. 2010;214(5-6):655-667. doi:10.1007/s00429-010-0262-0
+4. Cortese S, et al. Toward systems neuroscience of ADHD: a meta-analysis of 55 fMRI studies. *Am J Psychiatry*. 2012;169(10):1038-1055. doi:10.1176/appi.ajp.2012.11101521
+5. Koirala S, et al. Neurobiology of attention-deficit hyperactivity disorder: historical challenges and emerging frontiers. *Nat Rev Neurosci*. 2024;25(12):759-775. doi:10.1038/s41583-024-00869-z
+6. Pan N, et al. Mapping ADHD heterogeneity and biotypes by topological deviations in morphometric similarity networks. *JAMA Psychiatry*. 2026. doi:10.1001/jamapsychiatry.2026.0001
+7. Hoogman M, et al. Brain imaging of the cortex in ADHD: a coordinated analysis of large-scale clinical and population-based samples. *Am J Psychiatry*. 2019;176(7):531-542. doi:10.1176/appi.ajp.2019.18091033

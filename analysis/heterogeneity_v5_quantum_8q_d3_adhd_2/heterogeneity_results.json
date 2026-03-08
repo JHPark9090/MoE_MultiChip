@@ -1,0 +1,815 @@
+{
+  "model_type": "quantum",
+  "circuit_config": "adhd_2",
+  "checkpoint": "checkpoints/CircuitMoE_quantum_adhd_2_49777880.pt",
+  "n_clusters": 3,
+  "n_adhd_subjects": 288,
+  "silhouette_sweep": {
+    "2": 0.8656233549118042,
+    "3": 0.510054886341095,
+    "4": 0.5329204201698303,
+    "5": 0.5330327153205872,
+    "6": 0.52211594581604
+  },
+  "best_k_auto": 2,
+  "silhouettes": {
+    "circuit": 0.510054886341095,
+    "network": 0.20903131365776062,
+    "roi": 0.23066425323486328
+  },
+  "cross_level_ari": {
+    "circuit_vs_network": -0.0033829324948650916,
+    "circuit_vs_roi": 0.024082827910715466,
+    "network_vs_roi": 0.1192445579688476
+  },
+  "circuit_clusters": {
+    "cluster_0": {
+      "n_subjects": 146,
+      "dominant_circuit": "External",
+      "gate_profile": {
+        "Internal": {
+          "mean": 0.48580795526504517,
+          "std": 0.010862324386835098
+        },
+        "External": {
+          "mean": 0.5141921043395996,
+          "std": 0.010862329043447971
+        }
+      }
+    },
+    "cluster_1": {
+      "n_subjects": 7,
+      "dominant_circuit": "Internal",
+      "gate_profile": {
+        "Internal": {
+          "mean": 0.6238539814949036,
+          "std": 0.026947177946567535
+        },
+        "External": {
+          "mean": 0.3761460483074188,
+          "std": 0.026947183534502983
+        }
+      }
+    },
+    "cluster_2": {
+      "n_subjects": 135,
+      "dominant_circuit": "Internal",
+      "gate_profile": {
+        "Internal": {
+          "mean": 0.5065138936042786,
+          "std": 0.009989267215132713
+        },
+        "External": {
+          "mean": 0.4934861958026886,
+          "std": 0.009989269077777863
+        }
+      }
+    },
+    "gate_anova": {
+      "Internal": {
+        "F_stat": 566.1055849969597,
+        "p_value": 5.444610355155553e-100
+      },
+      "External": {
+        "F_stat": 566.1054648031651,
+        "p_value": 5.444741957743599e-100
+      }
+    }
+  },
+  "expert_clusters": {
+    "cluster_0": {
+      "n_subjects": 79,
+      "dominant_expert": "Internal",
+      "expert_norms": {
+        "Internal": 3.024043560028076,
+        "External": 1.4878164529800415
+      }
+    },
+    "cluster_1": {
+      "n_subjects": 91,
+      "dominant_expert": "External",
+      "expert_norms": {
+        "Internal": 1.2524285316467285,
+        "External": 1.7588756084442139
+      }
+    },
+    "cluster_2": {
+      "n_subjects": 118,
+      "dominant_expert": "Internal",
+      "expert_norms": {
+        "Internal": 1.752551555633545,
+        "External": 1.4525587558746338
+      }
+    }
+  },
+  "roi_clusters": {
+    "cluster_0": {
+      "n_subjects": 27,
+      "top_rois": [
+        {
+          "roi_idx": 92,
+          "region": "OFC",
+          "network": "Limbic_OFC",
+          "score": 1.1207255125045776,
+          "signed_score": 0.0025775847025215626,
+          "direction": "+ADHD"
+        },
+        {
+          "roi_idx": 164,
+          "region": "s32",
+          "network": "Limbic_OFC",
+          "score": 1.005810260772705,
+          "signed_score": 0.0016988260904327035,
+          "direction": "+ADHD"
+        },
+        {
+          "roi_idx": 177,
+          "region": "PI",
+          "network": "SalVentAttnA",
+          "score": 0.994752049446106,
+          "signed_score": 0.005737723782658577,
+          "direction": "+ADHD"
+        },
+        {
+          "roi_idx": 54,
+          "region": "6mp",
+          "network": "SomMotA",
+          "score": 0.9850199222564697,
+          "signed_score": -0.0008619237341918051,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 163,
+          "region": "25",
+          "network": "Limbic_OFC",
+          "score": 0.9679364562034607,
+          "signed_score": 0.002625338500365615,
+          "direction": "+ADHD"
+        },
+        {
+          "roi_idx": 41,
+          "region": "7AL",
+          "network": "DorsAttnB",
+          "score": 0.9468997120857239,
+          "signed_score": -0.00046882202150300145,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 100,
+          "region": "OP1",
+          "network": "SomMotB",
+          "score": 0.9289166331291199,
+          "signed_score": -0.001138449995778501,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 161,
+          "region": "31a",
+          "network": "ContA",
+          "score": 0.924548327922821,
+          "signed_score": 0.0003936170833185315,
+          "direction": "+ADHD"
+        },
+        {
+          "roi_idx": 106,
+          "region": "TA2",
+          "network": "SomMotB",
+          "score": 0.9108185768127441,
+          "signed_score": 0.003032961394637823,
+          "direction": "+ADHD"
+        },
+        {
+          "roi_idx": 7,
+          "region": "4",
+          "network": "SomMotA",
+          "score": 0.8840413689613342,
+          "signed_score": -0.0005755994934588671,
+          "direction": "-ADHD"
+        }
+      ],
+      "top_positive_rois": [
+        {
+          "roi_idx": 121,
+          "region": "PeEc",
+          "network": "Limbic_TempPole",
+          "signed_score": 0.018577439710497856
+        },
+        {
+          "roi_idx": 171,
+          "region": "TGv",
+          "network": "Limbic_TempPole",
+          "signed_score": 0.01638581044971943
+        },
+        {
+          "roi_idx": 130,
+          "region": "TGd",
+          "network": "Limbic_TempPole",
+          "signed_score": 0.0126873217523098
+        },
+        {
+          "roi_idx": 134,
+          "region": "TF",
+          "network": "Limbic_TempPole",
+          "signed_score": 0.009210187010467052
+        },
+        {
+          "roi_idx": 109,
+          "region": "Pir",
+          "network": "Limbic_TempPole",
+          "signed_score": 0.007914338260889053
+        }
+      ],
+      "top_negative_rois": [
+        {
+          "roi_idx": 102,
+          "region": "52",
+          "network": "SomMotB",
+          "signed_score": -0.0022339122369885445
+        },
+        {
+          "roi_idx": 123,
+          "region": "PBelt",
+          "network": "SomMotB",
+          "signed_score": -0.0016844735946506262
+        },
+        {
+          "roi_idx": 79,
+          "region": "IFJp",
+          "network": "ContB",
+          "signed_score": -0.001550103654153645
+        },
+        {
+          "roi_idx": 172,
+          "region": "MBelt",
+          "network": "SomMotB",
+          "signed_score": -0.0015433619264513254
+        },
+        {
+          "roi_idx": 173,
+          "region": "LBelt",
+          "network": "SomMotB",
+          "signed_score": -0.0015309377340599895
+        }
+      ],
+      "network_scores": {
+        "VisCent": {
+          "absolute": 0.5900902152061462,
+          "signed": 0.0008941646665334702,
+          "direction": "+ADHD"
+        },
+        "VisPeri": {
+          "absolute": 0.5571179389953613,
+          "signed": 0.000585974776186049,
+          "direction": "+ADHD"
+        },
+        "SomMotA": {
+          "absolute": 0.8178442716598511,
+          "signed": -0.0006072983960621059,
+          "direction": "-ADHD"
+        },
+        "SomMotB": {
+          "absolute": 0.7326385378837585,
+          "signed": -0.0008715418516658247,
+          "direction": "-ADHD"
+        },
+        "DorsAttnA": {
+          "absolute": 0.726714551448822,
+          "signed": 0.000538485823199153,
+          "direction": "+ADHD"
+        },
+        "DorsAttnB": {
+          "absolute": 0.7903553247451782,
+          "signed": -0.0007903752266429365,
+          "direction": "-ADHD"
+        },
+        "SalVentAttnA": {
+          "absolute": 0.7164311408996582,
+          "signed": -0.00037776841782033443,
+          "direction": "-ADHD"
+        },
+        "SalVentAttnB": {
+          "absolute": 0.7053869962692261,
+          "signed": 7.062722579576075e-05,
+          "direction": "+ADHD"
+        },
+        "Limbic_TempPole": {
+          "absolute": 0.7273103594779968,
+          "signed": 0.009420975111424923,
+          "direction": "+ADHD"
+        },
+        "Limbic_OFC": {
+          "absolute": 0.8648582696914673,
+          "signed": 0.003017191542312503,
+          "direction": "+ADHD"
+        },
+        "ContA": {
+          "absolute": 0.8006952404975891,
+          "signed": -9.722266986500472e-05,
+          "direction": "-ADHD"
+        },
+        "ContB": {
+          "absolute": 0.7119441628456116,
+          "signed": -0.0008423375547863543,
+          "direction": "-ADHD"
+        },
+        "ContC": {
+          "absolute": 0.6916259527206421,
+          "signed": 0.0003115426516160369,
+          "direction": "+ADHD"
+        },
+        "DefaultA": {
+          "absolute": 0.6319178938865662,
+          "signed": 0.000829018303193152,
+          "direction": "+ADHD"
+        },
+        "DefaultB": {
+          "absolute": 0.6180049777030945,
+          "signed": 0.00030088660423643887,
+          "direction": "+ADHD"
+        },
+        "DefaultC": {
+          "absolute": 0.6869492530822754,
+          "signed": -0.00016008286911528558,
+          "direction": "-ADHD"
+        },
+        "TempPar": {
+          "absolute": 0.6413224935531616,
+          "signed": 0.0006755900685675442,
+          "direction": "+ADHD"
+        }
+      }
+    },
+    "cluster_1": {
+      "n_subjects": 96,
+      "top_rois": [
+        {
+          "roi_idx": 100,
+          "region": "OP1",
+          "network": "SomMotB",
+          "score": 0.6055315136909485,
+          "signed_score": 0.00022175954654812813,
+          "direction": "+ADHD"
+        },
+        {
+          "roi_idx": 128,
+          "region": "STSdp",
+          "network": "DefaultA",
+          "score": 0.6054585576057434,
+          "signed_score": -0.0005702062044292688,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 92,
+          "region": "OFC",
+          "network": "Limbic_OFC",
+          "score": 0.598356306552887,
+          "signed_score": 0.0010382962645962834,
+          "direction": "+ADHD"
+        },
+        {
+          "roi_idx": 41,
+          "region": "7AL",
+          "network": "DorsAttnB",
+          "score": 0.5831330418586731,
+          "signed_score": -0.001204654690809548,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 10,
+          "region": "PEF",
+          "network": "ContB",
+          "score": 0.5812256932258606,
+          "signed_score": -6.50218571536243e-05,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 96,
+          "region": "i6-8",
+          "network": "ContC",
+          "score": 0.580790102481842,
+          "signed_score": -0.0009735713829286397,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 54,
+          "region": "6mp",
+          "network": "SomMotA",
+          "score": 0.5800063610076904,
+          "signed_score": -0.0006986108492128551,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 174,
+          "region": "A4",
+          "network": "SomMotB",
+          "score": 0.5689568519592285,
+          "signed_score": -0.0004029945994261652,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 1,
+          "region": "MST",
+          "network": "DorsAttnA",
+          "score": 0.5584595799446106,
+          "signed_score": -0.0004715776303783059,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 81,
+          "region": "IFSa",
+          "network": "ContB",
+          "score": 0.557577908039093,
+          "signed_score": -0.0005898973904550076,
+          "direction": "-ADHD"
+        }
+      ],
+      "top_positive_rois": [
+        {
+          "roi_idx": 92,
+          "region": "OFC",
+          "network": "Limbic_OFC",
+          "signed_score": 0.0010382962645962834
+        },
+        {
+          "roi_idx": 154,
+          "region": "PHA2",
+          "network": "DefaultB",
+          "signed_score": 0.0006618631887249649
+        },
+        {
+          "roi_idx": 89,
+          "region": "10pp",
+          "network": "Limbic_OFC",
+          "signed_score": 0.000533892831299454
+        },
+        {
+          "roi_idx": 165,
+          "region": "pOFC",
+          "network": "Limbic_OFC",
+          "signed_score": 0.0005262402119114995
+        },
+        {
+          "roi_idx": 125,
+          "region": "PHA1",
+          "network": "DefaultB",
+          "signed_score": 0.0004884278168901801
+        }
+      ],
+      "top_negative_rois": [
+        {
+          "roi_idx": 41,
+          "region": "7AL",
+          "network": "DorsAttnB",
+          "signed_score": -0.001204654690809548
+        },
+        {
+          "roi_idx": 62,
+          "region": "8BM",
+          "network": "ContC",
+          "signed_score": -0.0011254920391365886
+        },
+        {
+          "roi_idx": 35,
+          "region": "5m",
+          "network": "SomMotA",
+          "signed_score": -0.0011065555736422539
+        },
+        {
+          "roi_idx": 76,
+          "region": "a47r",
+          "network": "ContC",
+          "signed_score": -0.0011065324069932103
+        },
+        {
+          "roi_idx": 38,
+          "region": "5L",
+          "network": "DorsAttnB",
+          "signed_score": -0.0010718326084315777
+        }
+      ],
+      "network_scores": {
+        "VisCent": {
+          "absolute": 0.46536239981651306,
+          "signed": -0.0004863140929955989,
+          "direction": "-ADHD"
+        },
+        "VisPeri": {
+          "absolute": 0.42040586471557617,
+          "signed": -2.1599273168249056e-05,
+          "direction": "-ADHD"
+        },
+        "SomMotA": {
+          "absolute": 0.5085358619689941,
+          "signed": -0.0007394071435555816,
+          "direction": "-ADHD"
+        },
+        "SomMotB": {
+          "absolute": 0.5162315964698792,
+          "signed": -0.00018393380742054433,
+          "direction": "-ADHD"
+        },
+        "DorsAttnA": {
+          "absolute": 0.5005608797073364,
+          "signed": -0.00033872350468300283,
+          "direction": "-ADHD"
+        },
+        "DorsAttnB": {
+          "absolute": 0.5214723944664001,
+          "signed": -0.000641817576251924,
+          "direction": "-ADHD"
+        },
+        "SalVentAttnA": {
+          "absolute": 0.4731610417366028,
+          "signed": -0.00012248182611074299,
+          "direction": "-ADHD"
+        },
+        "SalVentAttnB": {
+          "absolute": 0.49115896224975586,
+          "signed": -0.0002388620050624013,
+          "direction": "-ADHD"
+        },
+        "Limbic_TempPole": {
+          "absolute": 0.47635617852211,
+          "signed": 8.627845818409696e-05,
+          "direction": "+ADHD"
+        },
+        "Limbic_OFC": {
+          "absolute": 0.47048071026802063,
+          "signed": 0.0004712081281468272,
+          "direction": "+ADHD"
+        },
+        "ContA": {
+          "absolute": 0.48573416471481323,
+          "signed": -0.00043290620669722557,
+          "direction": "-ADHD"
+        },
+        "ContB": {
+          "absolute": 0.5102459788322449,
+          "signed": -0.00035443049273453653,
+          "direction": "-ADHD"
+        },
+        "ContC": {
+          "absolute": 0.5037732720375061,
+          "signed": -0.0006878318963572383,
+          "direction": "-ADHD"
+        },
+        "DefaultA": {
+          "absolute": 0.49632102251052856,
+          "signed": -0.0004450170381460339,
+          "direction": "-ADHD"
+        },
+        "DefaultB": {
+          "absolute": 0.4667234420776367,
+          "signed": 0.00017532128549646586,
+          "direction": "+ADHD"
+        },
+        "DefaultC": {
+          "absolute": 0.44092437624931335,
+          "signed": -0.0003780217084567994,
+          "direction": "-ADHD"
+        },
+        "TempPar": {
+          "absolute": 0.46345508098602295,
+          "signed": -0.0002987835614476353,
+          "direction": "-ADHD"
+        }
+      }
+    },
+    "cluster_2": {
+      "n_subjects": 165,
+      "top_rois": [
+        {
+          "roi_idx": 157,
+          "region": "V3CD",
+          "network": "VisCent",
+          "score": 0.4596877098083496,
+          "signed_score": -0.00030513020465150476,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 128,
+          "region": "STSdp",
+          "network": "DefaultA",
+          "score": 0.4567211866378784,
+          "signed_score": -0.00015201771748252213,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 131,
+          "region": "TE1a",
+          "network": "TempPar",
+          "score": 0.44968312978744507,
+          "signed_score": 0.00013235461665317416,
+          "direction": "+ADHD"
+        },
+        {
+          "roi_idx": 18,
+          "region": "V3B",
+          "network": "VisCent",
+          "score": 0.4493500590324402,
+          "signed_score": -0.00047575918142683804,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 76,
+          "region": "a47r",
+          "network": "ContC",
+          "score": 0.44377028942108154,
+          "signed_score": 0.00021749762527178973,
+          "direction": "+ADHD"
+        },
+        {
+          "roi_idx": 174,
+          "region": "A4",
+          "network": "SomMotB",
+          "score": 0.4385848939418793,
+          "signed_score": -0.00032094778725877404,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 100,
+          "region": "OP1",
+          "network": "SomMotB",
+          "score": 0.4364425241947174,
+          "signed_score": 0.0003305241116322577,
+          "direction": "+ADHD"
+        },
+        {
+          "roi_idx": 21,
+          "region": "PIT",
+          "network": "VisCent",
+          "score": 0.43611714243888855,
+          "signed_score": -0.0004321831511333585,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 16,
+          "region": "IPS1",
+          "network": "DorsAttnA",
+          "score": 0.4322335422039032,
+          "signed_score": -0.0003827252658084035,
+          "direction": "-ADHD"
+        },
+        {
+          "roi_idx": 1,
+          "region": "MST",
+          "network": "DorsAttnA",
+          "score": 0.4257945120334625,
+          "signed_score": -0.00015129311941564083,
+          "direction": "-ADHD"
+        }
+      ],
+      "top_positive_rois": [
+        {
+          "roi_idx": 177,
+          "region": "PI",
+          "network": "SalVentAttnA",
+          "signed_score": 0.0006278843502514064
+        },
+        {
+          "roi_idx": 120,
+          "region": "ProS",
+          "network": "VisPeri",
+          "signed_score": 0.00044395955046638846
+        },
+        {
+          "roi_idx": 91,
+          "region": "13l",
+          "network": "Limbic_OFC",
+          "signed_score": 0.0003860412980429828
+        },
+        {
+          "roi_idx": 127,
+          "region": "STSda",
+          "network": "TempPar",
+          "signed_score": 0.0003701360838022083
+        },
+        {
+          "roi_idx": 100,
+          "region": "OP1",
+          "network": "SomMotB",
+          "signed_score": 0.0003305241116322577
+        }
+      ],
+      "top_negative_rois": [
+        {
+          "roi_idx": 126,
+          "region": "PHA3",
+          "network": "DefaultB",
+          "signed_score": -0.0006054459372535348
+        },
+        {
+          "roi_idx": 144,
+          "region": "IP1",
+          "network": "ContB",
+          "signed_score": -0.0005340278148651123
+        },
+        {
+          "roi_idx": 135,
+          "region": "TE2p",
+          "network": "Limbic_TempPole",
+          "signed_score": -0.000522272486705333
+        },
+        {
+          "roi_idx": 28,
+          "region": "7Pm",
+          "network": "ContA",
+          "signed_score": -0.0004889567499049008
+        },
+        {
+          "roi_idx": 18,
+          "region": "V3B",
+          "network": "VisCent",
+          "signed_score": -0.00047575918142683804
+        }
+      ],
+      "network_scores": {
+        "VisCent": {
+          "absolute": 0.4123097360134125,
+          "signed": -0.00018475564138498157,
+          "direction": "-ADHD"
+        },
+        "VisPeri": {
+          "absolute": 0.3586311936378479,
+          "signed": 4.850740879192017e-06,
+          "direction": "+ADHD"
+        },
+        "SomMotA": {
+          "absolute": 0.3320005238056183,
+          "signed": -0.00017276809376198798,
+          "direction": "-ADHD"
+        },
+        "SomMotB": {
+          "absolute": 0.3766784071922302,
+          "signed": -7.792469841660932e-05,
+          "direction": "-ADHD"
+        },
+        "DorsAttnA": {
+          "absolute": 0.39999741315841675,
+          "signed": -0.00027002039132639766,
+          "direction": "-ADHD"
+        },
+        "DorsAttnB": {
+          "absolute": 0.3696640431880951,
+          "signed": -8.806328696664423e-05,
+          "direction": "-ADHD"
+        },
+        "SalVentAttnA": {
+          "absolute": 0.3368406295776367,
+          "signed": 8.994642121251673e-05,
+          "direction": "+ADHD"
+        },
+        "SalVentAttnB": {
+          "absolute": 0.3520035147666931,
+          "signed": 0.0001774760166881606,
+          "direction": "+ADHD"
+        },
+        "Limbic_TempPole": {
+          "absolute": 0.34709689021110535,
+          "signed": -5.296821836964227e-05,
+          "direction": "-ADHD"
+        },
+        "Limbic_OFC": {
+          "absolute": 0.31369709968566895,
+          "signed": 0.00013430198305286467,
+          "direction": "+ADHD"
+        },
+        "ContA": {
+          "absolute": 0.35770654678344727,
+          "signed": -0.00020770537958014756,
+          "direction": "-ADHD"
+        },
+        "ContB": {
+          "absolute": 0.3769087493419647,
+          "signed": -0.0001866758248070255,
+          "direction": "-ADHD"
+        },
+        "ContC": {
+          "absolute": 0.37678730487823486,
+          "signed": 1.940346737683285e-05,
+          "direction": "+ADHD"
+        },
+        "DefaultA": {
+          "absolute": 0.37005510926246643,
+          "signed": -0.0002570480282884091,
+          "direction": "-ADHD"
+        },
+        "DefaultB": {
+          "absolute": 0.35607045888900757,
+          "signed": -0.0002934287185780704,
+          "direction": "-ADHD"
+        },
+        "DefaultC": {
+          "absolute": 0.32417139410972595,
+          "signed": 3.3773549148463644e-06,
+          "direction": "+ADHD"
+        },
+        "TempPar": {
+          "absolute": 0.34681782126426697,
+          "signed": 7.155875937314704e-05,
+          "direction": "+ADHD"
+        }
+      }
+    }
+  }
+}

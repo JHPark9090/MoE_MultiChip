@@ -25,13 +25,16 @@ sys.path.insert(0, '.')
 from models.yeo17_networks import get_circuit_config
 
 
-def load_data(config, model_type):
+def load_data(config, model_type, version=''):
     """Load heterogeneity analysis results."""
-    base = Path(f"analysis/heterogeneity_{model_type}_{config}")
+    if version:
+        base = Path(f"analysis/heterogeneity_{version}_{model_type}_{config}")
+    else:
+        base = Path(f"analysis/heterogeneity_{model_type}_{config}")
     npz = np.load(base / "subject_representations.npz", allow_pickle=True)
     with open(base / "heterogeneity_results.json") as f:
         results = json.load(f)
-    return npz, results
+    return npz, results, base
 
 
 def get_expert_names(config):
@@ -306,15 +309,21 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', required=True, choices=['adhd_3', 'adhd_2'])
     parser.add_argument('--model-type', required=True, choices=['classical', 'quantum'])
+    parser.add_argument('--version', default='', help='Version prefix (e.g., "v5")')
     args = parser.parse_args()
 
-    print(f"\nVisualizing heterogeneity: {args.model_type} {args.config}")
+    # For quantum model type, adjust the directory suffix
+    model_suffix = args.model_type
+    if args.model_type == 'quantum':
+        model_suffix = 'quantum_8q_d3'
+
+    print(f"\nVisualizing heterogeneity: {model_suffix} {args.config}")
     print("=" * 60)
 
-    npz, results = load_data(args.config, args.model_type)
+    npz, results, base_dir = load_data(args.config, model_suffix, args.version)
     expert_names = get_expert_names(args.config)
 
-    out_dir = Path(f"analysis/heterogeneity_{args.model_type}_{args.config}/figures")
+    out_dir = base_dir / 'figures'
     out_dir.mkdir(parents=True, exist_ok=True)
 
     plot_silhouette_sweep(results, out_dir)
