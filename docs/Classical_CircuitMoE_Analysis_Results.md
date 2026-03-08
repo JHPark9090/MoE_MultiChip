@@ -1,5 +1,7 @@
 # Classical Circuit MoE — Interpretability and Heterogeneity Analysis Results
 
+> **DEPRECATION NOTICE (2026-03-07):** The results in this document were generated using an **incorrect Yeo-17 network mapping** in `models/yeo17_networks.py`. The old mapping used fabricated contiguous-block ROI-to-network assignments that do not correspond to actual Glasser-to-Yeo17 anatomical overlap. All ROI-level, network-level, and circuit-level interpretations (gradient saliency, clustering, subtyping) are therefore **not neurobiologically valid**. The mapping was corrected via volumetric overlap between the Glasser atlas and Yeo 2011 17-network atlas (bilateral majority-vote). See `dataloaders/glasser_to_yeo17_mapping.json` for the validated mapping. Experiments with the corrected mapping (v5) have been submitted and results will supersede this document.
+
 **Date**: 2026-03-07
 **Models analyzed**: Classical Circuit MoE 4-expert (adhd_3), Classical Circuit MoE 2-expert (adhd_2)
 **Dataset**: ABCD fMRI, ADHD classification, N=4,458 (Test set: 669 subjects, 381 ADHD-, 288 ADHD+)

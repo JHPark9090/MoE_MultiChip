@@ -1,5 +1,7 @@
 # ADHD Heterogeneity Analysis via Learned Representations
 
+> **DEPRECATED (2026-03-07):** Generated with incorrect Yeo-17 mapping. ROI/network/circuit interpretations are not neurobiologically valid. Will be regenerated with corrected mapping (v5).
+
 **Model**: classical | **Config**: adhd_3 | **K**: 3 clusters
 
 ## Level 1: Circuit-Level Heterogeneity (Gate Weights)

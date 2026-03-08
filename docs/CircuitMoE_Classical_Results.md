@@ -1,5 +1,7 @@
 # Classical Circuit MoE Results — ADHD Classification
 
+> **DEPRECATION NOTICE (2026-03-07):** The circuit expert assignments in this document (DMN 55 ROIs, Executive 50, Salience 29, SensoriMotor 46) were based on an **incorrect Yeo-17 network mapping** that used fabricated contiguous-block ROI indices. The actual ROI-to-Yeo17 correspondence was computed via volumetric overlap between the Glasser atlas and Yeo 2011 17-network atlas, yielding different circuit sizes (DMN 41, Executive 52, Salience 44, SensoriMotor 43). While the AUC scores are valid training outcomes, the neuroscience interpretation of which brain regions each expert processed is wrong. See v5 results for corrected experiments.
+
 **Date**: 2026-03-07
 **Status**: Classical results complete. Quantum jobs submitted (49755381, 49755382).
 

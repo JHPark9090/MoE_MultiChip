@@ -1,5 +1,7 @@
 # Quantum Circuit MoE — Results, Bottleneck Analysis, and Solutions
 
+> **DEPRECATION NOTICE (2026-03-07):** The AUC results and circuit-level interpretations in this document were produced using an **incorrect Yeo-17 network mapping** (fabricated contiguous-block ROI assignments). The quantum training fixes (v2 poly_coeffs, mix_coeffs, gradient scaling, temporal pooling) remain valid, but all performance numbers and neuroscience-based explanations of circuit specialization must be re-evaluated with the corrected mapping. See v5 results for updated experiments.
+
 **Date**: 2026-03-07
 **Status**: All experiments complete (v1, v2/8Q, v3/10Q). 10Q 4-expert achieves 0.6022 AUC (97.7% of classical).
 

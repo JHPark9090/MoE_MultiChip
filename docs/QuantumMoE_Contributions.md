@@ -1,5 +1,7 @@
 # Novel Contributions of Quantum Mixture of Experts
 
+> **DEPRECATION NOTICE (2026-03-07):** The circuit expert ROI counts in this document (DMN 55, Executive 50, Salience 29, SensoriMotor 46) were based on an **incorrect Yeo-17 network mapping**. The corrected mapping (via volumetric Glasser-to-Yeo17 overlap) yields different circuit compositions (DMN 41, Executive 52, Salience 44, SensoriMotor 43). The conceptual contributions (domain-informed partitioning, quantum MoE framework, parameter efficiency) remain valid, but specific ROI assignments and associated claims need updating with v5 results.
+
 **Date**: 2026-03-07
 **Status**: All experiments complete. 10Q 4-expert achieves 0.6022 AUC (97.7% of classical, 1.5 pt gap).
 

@@ -1,5 +1,7 @@
 # Circuit MoE Interpretability Analysis
 
+> **DEPRECATED (2026-03-07):** Generated with incorrect Yeo-17 mapping. ROI/network/circuit interpretations are not neurobiologically valid. Will be regenerated with corrected mapping (v5).
+
 **Model**: classical | **Config**: adhd_2 | **Experts**: 2
 
 ## 1. Circuit-Level Analysis: Gate Weights by Class

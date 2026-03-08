@@ -1,5 +1,7 @@
 # ADHD Heterogeneity Analysis via Circuit MoE Learned Representations
 
+> **NOTE (2026-03-07):** The initial analyses run under this plan used an **incorrect Yeo-17 network mapping** (contiguous-block ROI assignments). The analysis methodology itself is sound, but results must be regenerated using the corrected mapping (v5). The analysis scripts have been updated to use the validated mapping and now include brain region names.
+
 **Date**: 2026-03-07 (updated 2026-03-07)
 **Status**: Classical models submitted (job 49772111). Quantum models ready (`scripts/run_heterogeneity_quantum.sh`).
 

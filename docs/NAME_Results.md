@@ -1,5 +1,7 @@
 # Network-Aware Multi-Scale Expert (NAME) — Results
 
+> **NOTE (2026-03-07):** The Yeo 17-network spatial projection in NAME used an **incorrect Yeo-17 network mapping** (fabricated contiguous-block ROI assignments). NAME's results should be re-evaluated with the corrected mapping, though the overall underperformance vs SE baseline may be due to the d_net=8 bottleneck rather than the mapping issue.
+
 **Date**: 2026-03-06
 **Status**: ADHD Classical completed. Underperforms SE baseline. Other phenotypes/quantum not submitted.
 

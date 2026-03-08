@@ -1,5 +1,7 @@
 # Circuit MoE Interpretability Analysis Plan
 
+> **NOTE (2026-03-07):** The initial analyses run under this plan used an **incorrect Yeo-17 network mapping** (contiguous-block ROI assignments). The analysis methodology itself is sound, but results must be regenerated using the corrected mapping (v5). The analysis scripts (`analyze_circuit_moe.py`, `analyze_heterogeneity.py`) have been updated to use the validated mapping and now include brain region names.
+
 **Date**: 2026-03-07 (updated 2026-03-07)
 **Status**: Classical models submitted (jobs 49772109). Quantum models ready (`scripts/run_interpretability_quantum.sh`).
 

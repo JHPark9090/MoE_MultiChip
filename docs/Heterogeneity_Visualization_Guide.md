@@ -1,5 +1,7 @@
 # Heterogeneity Visualization Guide
 
+> **NOTE (2026-03-07):** The example visualizations referenced in this guide were generated using an **incorrect Yeo-17 network mapping**. The visualization pipeline itself is valid and will work correctly with v5 checkpoints (corrected mapping).
+
 **Date**: 2026-03-07
 **Script**: `visualize_heterogeneity.py`
 **Data source**: `analyze_heterogeneity.py` output (NPZ + JSON per model)

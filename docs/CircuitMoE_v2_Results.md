@@ -1,5 +1,7 @@
 # Circuit MoE v2/v3 — Quantum Fix Results
 
+> **DEPRECATION NOTICE (2026-03-07):** The AUC numbers in this document were obtained using an **incorrect Yeo-17 network mapping** (fabricated contiguous-block ROI assignments). The quantum training fixes themselves (poly_coeffs, mix_coeffs, gradient scaling, temporal pooling) are architecture-level improvements that remain valid regardless of mapping. However, the reported performance numbers must be re-evaluated with the corrected Yeo-17 mapping (v5).
+
 **Date**: 2026-03-07
 **Status**: Complete. All v2 (8Q) and v3 (10Q) quantum jobs finished.
 

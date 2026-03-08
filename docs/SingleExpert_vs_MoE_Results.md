@@ -1,5 +1,7 @@
 # Single-Expert Baselines vs Mixture of Experts: Complete Results
 
+> **NOTE (2026-03-07):** The MoE results (Circuit MoE, Cluster MoE, Learned MoE) in this document used an **incorrect Yeo-17 network mapping** for circuit-specialized experts. Single-Expert baseline results are unaffected (they use all 180 ROIs). The architectural comparison conclusions may change with the corrected mapping (v5).
+
 **Date**: 2026-03-02
 **Purpose**: Determine whether MoE routing provides a genuine benefit or if performance differences are attributable to parameter count alone.
 
